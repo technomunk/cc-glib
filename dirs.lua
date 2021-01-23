@@ -80,6 +80,9 @@ end
 
 -- Get the reverse (returning or backtracking) directions
 local function reverse(dirs)
+	if type(dirs) == "string" then
+		dirs = into(dirs)
+	end
 	local result = {}
 	for i=#dirs, 1, -1 do
 		result[#result + 1] = inv(dirs[i])
@@ -92,30 +95,52 @@ local function apply(dir, vec)
 	return vec + directions[dir]
 end
 
+-- Convert stringified directions into workable path
+local function into(dirs)
+	local result = {}
+	for i=1,#dirs do
+		local c = dirs:sub(i,i)
+		assert(is_dir(c))
+		table.insert(result, c)
+	end
+	return result
+end
+
+-- Get the index of the provided coordinate in the provided path
+local function idx_of(path, coord)
+	for i, pt in ipairs(path) do
+		if coord.x == pt.x and coord.y == pt.y and coord.z == pt.z then
+			return i
+		end
+	end
+	return nil
+end
+
 -- Remove any looping paths from the provided directions string
-local function deloop(dirs)
-	local path = {}
-	local index_to_state = {}
-	local state_to_index = {}
+local function deloop(path)
+	if type(path) == "string" then
+		path = into(path)
+	end
+
+	local result = {}
+	local points = {}
 	local state = vector.new()
-	for idx, dir in ipairs(dirs) do
+
+	for idx, dir in ipairs(path) do
 		state = apply(dir, state)
-		local state_index = state_to_index[state]
-		if state_index then
-			for i=state_index, #path do
-				table.remove(path)
-				index_to_state[i] = nil
-				state_to_index[state] = nil
+		local index = idx_of(points, state)
+		if index then
+			for i=idx, #points do
+				table.remove(points)
+				table.remove(result)
 			end
 		else
-			table.insert(path, dir)
-			index_to_state[#path] = state
-			state_to_index[state] = #path
+			table.insert(points, dir)
+			table.insert(result, dir)
 		end
 	end
 	return path
 end
-
 
 return {
 	is_dir = is_dir,
@@ -124,6 +149,7 @@ return {
 	get_right = get_right,
 	inv = inv,
 	lefts_to = lefts_to,
+	into = into,
 	reverse = reverse,
 	apply = apply,
 	deloop = deloop,

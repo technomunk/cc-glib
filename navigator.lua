@@ -94,14 +94,14 @@ local nav = {
 	end,
 	-- Navigate the navigator through with the provided directions
 	follow = function(self, path)
-		for i, dir in path do
+		for i, dir in ipairs(path) do
 			if dir == 'u' then
 				self:up()
 			elseif dir == 'd' then
 				self:dwn()
 			elseif dir == self.dir then
 				self:fwd()
-			elseif dir == dirs.inv(dir) then
+			elseif dir == dirs.inv(self.dir) then
 				self:bck()
 			elseif dir == dirs.get_left(self.dir) then
 				self:trn_left()
@@ -174,8 +174,8 @@ local function new(o)
 	o = o or {}
 	setmetatable(o, nav_meta)
 	o.dir = 'n'
-	o.coord = vector.new()
-	o.moves = {}
+	o.coords = vector.new()
+	o.path = {}
 	return o
 end
 
