@@ -1,11 +1,10 @@
 -- Improved excavation procedure
 
-local usage = [[
+local usage = [=[
 excavate up|down [[radius|x], y, z]
 Excavates a X*Y*Z cube in front of the turtle,
 depositing mined items into the chest behind the
-starting position if set to.
-]]
+starting position if set to.]=]
 
 local args = {...}
 
@@ -30,7 +29,7 @@ if args[1] == "down" then
 end
 local sx, sy, sz = 16, 16, 16
 
-if #args > 1
+if #args > 1 then
 	sx = tonumber(args[2])
 	if sx < 1 then
 		error("excavate expects a valid radius")
@@ -51,7 +50,7 @@ if sy > 256 then
 	sy = 256
 end
 
-if not util.ask("Excavate "..x.."x"..y.."x"..z.." area? ("..x*y*z.." blocks)?") then
+if not util.ask("Excavate "..sx.."x"..sy.."x"..sz.." area? ("..sx*sy*sz.." blocks)?") then
 	error("Operation aborted")
 end
 
@@ -64,14 +63,16 @@ end
 
 local px, py, pz = 0, 0, 0
 local dx, dz = 0, 1
-local dug = 0
+local dug, scooped = 0, 0
 local bucket_slot = inv.slot("minecraft:bucket")
 
 local function turn_left()
+	turtle.turnLeft()
 	dx, dz = -dz, dx
 end
 
 local function turn_right()
+	turtile.turnRight()
 	dx, dz = dz, -dx
 end
 
@@ -149,7 +150,7 @@ local function return_resources()
 end
 
 local function return_if_full_inv()
-	if inv.is_full() then
+	if chest and inv.is_full() then
 		return_resources()
 	end
 end
@@ -165,6 +166,7 @@ local function _dig_or_scoop(inspect, dig, scoop)
 			if is_lava(block) then
 				scoop()
 				turtle.refuel()
+				scooped = scooped + 1
 				return true
 			else
 				return_if_full_inv()
@@ -180,7 +182,12 @@ local function _dig_or_scoop(inspect, dig, scoop)
 		end
 	else
 		return_if_full_inv()
-		return dig()
+		if dig() then
+			dug = dug + 1
+			return true
+		else
+			return false
+		end
 	end
 end
 
@@ -226,8 +233,14 @@ local function finish()
 			turtle.drop()
 		end
 	end
-	print("Done mining, mined "..dug.." blocks")
-	return dug
+	print("Done mining.")
+	if dug > 0 then
+		print("Dug "..dug.." blocks.")
+	end
+	if scooped > 0 then
+		print("Scooped "..scooped.." buckets of lava.")
+	end
+	return dug, scooped
 end
 
 while py ~= sy do

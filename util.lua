@@ -49,8 +49,9 @@ end
 -- Prompt the user for a yes/no answer
 local function yes_no_prompt()
 	io.write("(y/n)")
+	local ans = nil
 	repeat
-		local ans = io.read()
+		ans = io.read()
 	until ans == 'y' or ans == 'yes' or ans == 'n' or ans == 'no'
 	return ans == 'y' or ans == 'yes'
 end
@@ -66,4 +67,5 @@ return {
 	first = first,
 	last = last,
 	yes_no_prompt = yes_no_prompt,
+	ask = ask,
 }
