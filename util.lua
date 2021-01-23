@@ -46,8 +46,24 @@ local function index(col, el, cmp)
 	end
 end
 
+-- Prompt the user for a yes/no answer
+local function yes_no_prompt()
+	io.write("(y/n)")
+	repeat
+		local ans = io.read()
+	until ans == 'y' or ans == 'yes' or ans == 'n' or ans == 'no'
+	return ans == 'y' or ans == 'yes'
+end
+
+-- Ask the user a yes/no question
+local function ask(question)
+	io.write(question)
+	return yes_no_prompt()
+end
+
 return {
 	last = last,
 	first = first,
 	last = last,
+	yes_no_prompt = yes_no_prompt,
 }
