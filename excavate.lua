@@ -15,13 +15,6 @@ end
 local util = require "util"
 local inv = require "inventory"
 
-local chest = false
-if util.ask("Is there a chest behind turtle?") then
-	chest = true
-elseif not util.ask("Continue anyway?") then
-	error("Operation aborted")
-end
-
 assert(type(args[1]) == "string" and (args[1] == "up" or args[1] == "down"), "excavate expects up or down")
 local dy = 1
 if args[1] == "down" then
@@ -44,6 +37,13 @@ if #args > 1 then
 		sy = sx
 		sz = sx
 	end
+end
+
+local chest = false
+if util.ask("Is there a chest behind turtle?") then
+	chest = true
+elseif not util.ask("Continue anyway?") then
+	error("Operation aborted")
 end
 
 if sy > 256 then
