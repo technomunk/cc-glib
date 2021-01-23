@@ -122,24 +122,24 @@ local function deloop(path)
 		path = into(path)
 	end
 
-	local result = {}
-	local points = {}
 	local state = vector.new()
+	local points = { state, }
+	local result = {}
 
 	for idx, dir in ipairs(path) do
 		state = apply(dir, state)
 		local index = idx_of(points, state)
 		if index then
-			for i=idx, #points do
+			for i=index+1, #points do
 				table.remove(points)
 				table.remove(result)
 			end
 		else
-			table.insert(points, dir)
+			table.insert(points, state)
 			table.insert(result, dir)
 		end
 	end
-	return path
+	return result
 end
 
 return {
