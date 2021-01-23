@@ -55,6 +55,7 @@ if not util.ask("Excavate "..sx.."x"..sy.."x"..sz.." area? ("..sx*sy*sz.." block
 end
 
 sx = sx - 1
+sy = sy - 1
 sz = sz - 1
 
 if dy < 0 then
@@ -72,7 +73,7 @@ local function turn_left()
 end
 
 local function turn_right()
-	turtile.turnRight()
+	turtle.turnRight()
 	dx, dz = dz, -dx
 end
 
@@ -204,12 +205,7 @@ local function dig_or_scoop_down()
 end
 
 local function progress()
-	if not forward() then
-		if not dig_or_scoop() then
-			return false
-		end
-	end
-	if forward() then
+	if forward() or (dig_or_scoop() and forward()) then
 		if dy > 0 then
 			if py < sy then
 				dig_or_scoop_up()
@@ -227,10 +223,12 @@ end
 
 local function finish()
 	go_to(0, 0, 0, 0, -1)
-	for i=1, 16 do
-		if i ~= bucket_slot then
-			turtle.select(i)
-			turtle.drop()
+	if chest then
+		for i=1, 16 do
+			if i ~= bucket_slot then
+				turtle.select(i)
+				turtle.drop()
+			end
 		end
 	end
 	print("Done mining.")
@@ -243,46 +241,54 @@ local function finish()
 	return dug, scooped
 end
 
-while py ~= sy do
+local right = true
+local function turn()
+	if right then
+		turn_right()
+	else
+		turn_left()
+	end
+end
+
+if py ~= sy then
+	if dy > 0 then
+		dig_or_scoop_up()
+	else
+		dig_or_scoop_down()
+	end
+end
+
+local done = false
+repeat
 	for x=0, sx do
-		for z=0, sz do
+		for z=1, sz do
 			if not progress() then
 				return finish()
 			end
 		end
-		if x % 2 == 0 then
-			turn_right()
-		else
-			turn_left()
-		end
-		if not progress() then
+		turn()
+		if x ~= sx and not progress() then
 			return finish()
 		end
-		if x % 2 == 0 then
-			turn_right()
-		else
-			turn_left()
+		turn()
+		if x ~= sx then
+			right = not right
 		end
 	end
-	if dy > 0 then
-		if not up() then
-			return finish()
-		end
-		if py ~= sy then
-			if not up() or not dig_or_scoop_up() or not up() then
-				return finish()
-			end
-		end
+
+	if math.abs(sy - py) < 2 then
+		done = true
 	else
-		if not down() then
-			return finish()
-		end
-		if py ~= sy then
-			if not down() or not dig_or_scoop_down() or not down() then
+		if dy > 0 then
+			if not up() or not (up() or dig_or_scoop_up() or up()) then
+				return finish()
+			end
+		else
+			if not down() or not (down() or dig_or_scoop_down() or down() then
 				return finish()
 			end
 		end
 	end
-end
+until done
 
 return finish()

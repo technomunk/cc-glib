@@ -37,7 +37,7 @@ end
 -- Check if the inventory is full
 local function is_full()
 	for i=1, 16 do
-		if not turtle.getItemCount(i) then
+		if turtle.getItemCount(i) == 0 then
 			return false
 		end
 	end
