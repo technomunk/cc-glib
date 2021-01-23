@@ -27,7 +27,7 @@ local nav = {
 	bck = function(self, n)
 		assert(type(self) == "table")
 		n = n or 1
-		local invdir = dirs.invdir(self.dir)
+		local invdir = dirs.inv(self.dir)
 		for i=1, n do
 			assert(turtle.back())
 			if util.last(self.path) == self.dir then
@@ -69,18 +69,20 @@ local nav = {
 	-- Rotate the navigator left
 	trn_left = function(self)
 		assert(type(self) == "table")
-		self.dir = dirs.leftdir(self.dir)
+		assert(turtle.turnLeft())
+		self.dir = dirs.get_left(self.dir)
 	end,
 	-- Rotate the navigator right
 	trn_right = function(self)
 		assert(type(self) == "table")
-		self.dir = dirs.rightdir(self.dir)
+		assert(turtle.turnRight())
+		self.dir = dirs.get_right(self.dir)
 	end,
 	-- Rotate the navigator to face the provided direction
 	face = function(self, dir)
 		assert(type(self) == "table")
 		assert(dirs.is_heading(dir))
-		local turns = coords.leftsto(self.dir, dir)
+		local turns = coords.lefts_to(self.dir, dir)
 		if turns == 3 then
 			self:trn_right()
 		elseif turns == 2 then
@@ -172,7 +174,7 @@ local function new(o)
 	o = o or {}
 	setmetatable(o, nav_meta)
 	o.dir = 'n'
-	o.coord = dirs.newpos()
+	o.coord = vector.new()
 	o.moves = {}
 	return o
 end
