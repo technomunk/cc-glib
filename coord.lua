@@ -10,7 +10,7 @@ local directions = {
 }
 
 -- Check if the provided variable is a valid direction
-function isdir(var)
+local function isdir(var)
 	return type(var) == "string"
 		and #var == 1
 		and string.find('neswud', var)
@@ -21,7 +21,7 @@ local position = {
 	move = function(self, dir, n)
 		assert(isdir(dir))
 		n = n or 1
-		directions[dir](self)
+		directions[dir](self, n)
 	end,
 }
 
@@ -30,10 +30,15 @@ local position_metatable = {
 }
 
 -- Construct an instance of positional coordinates
-function newpos(x, y, z)
+local function newpos(x, y, z)
 	return setmetatable({
 		x = tonumber(x) or 0,
 		y = tonumber(y) or 0,
 		z = tonumber(z) or 0,
 	}, position_metatable)
 end
+
+return {
+	isdir = isdir,
+	newpos = newpos,
+}
