@@ -293,13 +293,13 @@ repeat
 		done = true
 	else
 		if dy > 0 then
-			if not up() or not (up() or dig_or_scoop_up() or up()) then
-				return finish()
-			end
+			if not up() then return finish() end
+			dig_or_scoop_up()
+			if not up() then return finish() end
 		else
-			if not down() or not (down() or dig_or_scoop_down() or down()) then
-				return finish()
-			end
+			if not down() then return finish() end
+			dig_or_scoop_down()
+			if not down() then return finish() end
 		end
 	end
 until done
