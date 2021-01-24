@@ -1,182 +1,150 @@
--- Navigator adaptor for turtles
-
-local dirs = require "dirs"
-local util = require "util"
+-- Upgraded turtle that is able to go to specified coordinates
 
 local nav = {
-	path = {},
-	coords = vector.new(),
-	dir = 'n',
+	x = 0,
+	y = 0,
+	z = 0,
+	dx = 0,
+	dz = 1,
 
-	-- Move the navigator forward (toward its heading) n steps
-	fwd = function(self, n)
-		assert(type(self) == "table")
-		n = n or 1
-		local invdir = dirs.inv(self.dir)
-		for i=1, n do
-			assert(turtle.forward())
-			if util.last(self.path) == invdir then
-				table.remove(self.path)
+	forth = turtle.forward,
+	back = turtle.back,
+	up = turtle.up,
+	down = turtle.down,
+
+	-- Go forward n or 1 step(s)
+	goForth = function(self, n)
+		n = tonumber(n) or 1
+		for i = 1, math.abs(n) do
+			if n > 0 then
+				if self:forth() then
+					self.x = self.x + self.dx
+					self.z = self.z + self.dz
+				else
+					return false
+				end
+			elseif self:back() then
+				self.x = self.x - self.dx
+				self.z = self.z - self.dz
 			else
-				table.insert(self.path, self.dir)
+				return false
 			end
-			self.coords = dirs.apply(self.dir, self.coords)
 		end
+		return true
 	end,
-	-- Move the navigator back (away from its heading) n steps
-	bck = function(self, n)
-		assert(type(self) == "table")
-		n = n or 1
-		local invdir = dirs.inv(self.dir)
-		for i=1, n do
-			assert(turtle.back())
-			if util.last(self.path) == self.dir then
-				table.remove(self.path)
+	-- Go backward n or 1 step(s)
+	goBack = function(self, n)
+		n = tonumber(n) or 1
+		return self:goForth(-n)
+	end,
+	-- Go up n or 1 step(s)
+	goUp = function(self, n)
+		n = tonumber(n) or 1
+		for i = 1, n do
+			if self:up() then
+				self.y = self.y + 1
 			else
-				table.insert(self.path, invdir)
+				return false
 			end
-			self.coords = dirs.apply(invdir, self.coords)
 		end
+		return true
 	end,
-	-- Move the navigator up n steps
-	up = function(self, n)
-		assert(type(self) == "table")
-		n = n or 1
-		for i=1, n do
-			assert(turtle.up())
-			if util.last(self.path) == 'd' then
-				table.remove(self.path)
+	-- Go down n or 1 step(s)
+	goDown = function(self, n)
+		n = tonumber(n) or 1
+		for i = 1, n do
+			if self:down() then
+				self.y = self.y - 1
 			else
-				table.insert(self.path, 'u')
+				return false
 			end
-			self.coords = dirs.apply('u', self.coords)
 		end
+		return true
 	end,
-	-- Move the navigator down n steps
-	dwn = function(self, n)
-		assert(type(self) == "table")
-		n = n or 1
-		for i=1, n do
-			assert(turtle.down())
-			if util.last(self.path) == 'u' then
-				table.remove(self.path)
+	-- Turn the navigator left
+	turnLeft = function(self)
+		if turtle.turnLeft() then
+			self.dx, self.dz = -self.dz, self.dx
+			return true
+		end
+		return false
+	end,
+	-- Turn the navigator right
+	turnRight = function(self)
+		if turtle.turnRight() then
+			self.dx, self.dz = self.dz, -self.dx
+			return true
+		end
+		return false
+	end,
+	-- Turn the navigator around
+	turnAround = function(self)
+		return self:turnLeft() and self:turnLeft()
+	end,
+	
+	-- Turn the navigator to face in such direction, that
+	-- forward motion will affect x, z coordinates accordingly
+	turnTo = function(self, dx, dy)
+		assert(math.abs(dx) + math.abs(dy) == 1, "invalid direction")
+		if dx ~= 0 then
+			if self.dx == 0 then
+				if self.dz == dx then
+					self:turnRight()
+				else
+					self:turnLeft()
+				end
 			else
-				table.insert(self.path, 'd')
+				return self.dx == dx or self:turnAround()
 			end
-			self.coords = dirs.apply('d', self.coords)
-		end
-	end,
-	-- Rotate the navigator left
-	trn_left = function(self)
-		assert(type(self) == "table")
-		assert(turtle.turnLeft())
-		self.dir = dirs.get_left(self.dir)
-	end,
-	-- Rotate the navigator right
-	trn_right = function(self)
-		assert(type(self) == "table")
-		assert(turtle.turnRight())
-		self.dir = dirs.get_right(self.dir)
-	end,
-	-- Rotate the navigator to face the provided direction
-	face = function(self, dir)
-		assert(type(self) == "table")
-		assert(dirs.is_heading(dir))
-		local turns = coords.lefts_to(self.dir, dir)
-		if turns == 3 then
-			self:trn_right()
-		elseif turns == 2 then
-			self:trn_right()
-			self:trn_right()
-		elseif turns == 1 then
-			self:trn_left()
-		end
-	end,
-	-- Navigate the navigator through with the provided directions
-	follow = function(self, path)
-		for i, dir in ipairs(path) do
-			if dir == 'u' then
-				self:up()
-			elseif dir == 'd' then
-				self:dwn()
-			elseif dir == self.dir then
-				self:fwd()
-			elseif dir == dirs.inv(self.dir) then
-				self:bck()
-			elseif dir == dirs.get_left(self.dir) then
-				self:trn_left()
-				self:fwd()
-			elseif dir == dirs.get_right(self.dir) then
-				self:trn_right()
-				self:fwd()
+		else
+			if self.dz == 0 then
+				if self.dx == dz then
+					self:turnLeft()
+				else
+					self:turnRight()
+				end
 			else
-				error("invalid direction")
+				return self.dz == dz or self:turnAround()
 			end
 		end
 	end,
-	-- Return home walking on already walked coordinates
-	return_home = function(self)
-		self.path = dirs.deloop(self.path)
-		self:follow(dirs.reverse(self.path))
-	end,
-	-- Check whether the navigator has enough fuel to go to
-	-- provided coordinates
-	has_fuel_to_go_to = function(self, coords)
-		local x_delta = coords.x - self.coords.x
-		local y_delta = coords.y - self.coords.y
-		local z_delta = coords.z - self.coords.z
-		return x_delta + y_delta + z_delta
-	end,
-	-- Go directly to provided coordinates
-	go_to = function(self, coords)
-		if self.coords.x < coords.x then
-			self:face('e')
-		elseif self.coords.x > coords.x then
-			self:face('w')
+	-- Go to provided coordinates
+	goTo = function(self, x, y, z)
+		if type(x) == "table" then
+			z = x.z
+			y = x.y
+			x = x.x
 		end
-		while self.coords.x ~= coords.x do
-			self:fwd()
+		assert(x and y and z, "no coordinates given")
+		if self.y < y and not self:goUp(y - self.y) then
+			return false
+		end
+		if self.y > y and not self:goDown(self.y - y) then
+			return false
 		end
 
-		if self.coords.z < coords.z then
-			self:face('s')
-		elseif self.coords.z > coords.z then
-			self:face('n')
+		if self.x ~= x then
+			self:turnTo(1, 0)
+			self:goForth(x - self.x)
 		end
-		while self.coords.z ~= coords.z do
-			self:fwd()
+		
+		if self.z ~= z then
+			self:turnTo(0, 1)
+			self:goForth(z - self.z)
 		end
-
-		while self.coords.y < coords.y do
-			self:up()
-		end
-		while self.coords.y > coords.y do
-			self:dwn()
-		end
-	end,
-	-- Go home directly, do not retrace path
-	go_home = function(self)
-		self:go_to(vector.new())
-		self:set_home()
-	end,
-	-- Set the current position as home for the navigator
-	set_home = function(self)
-		self.path = {}
-		self.coords = vector.new()
 	end,
 }
 
 local nav_meta = {
-	__index = nav
+	__index = nav,
 }
 
-local function new(o)
-	o = o or {}
-	setmetatable(o, nav_meta)
-	o.dir = 'n'
-	o.coords = vector.new()
-	o.path = {}
-	return o
+local function new()
+	return setmetatable({
+		x = 0,
+		y = 0,
+		z = 0,
+	}, nav_meta)
 end
 
 return {
