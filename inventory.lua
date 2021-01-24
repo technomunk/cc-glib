@@ -35,7 +35,7 @@ local function slot(items)
 end
 
 -- Check if the inventory is full
-local function is_full()
+local function isFull()
 	for i=1, 16 do
 		if turtle.getItemCount(i) == 0 then
 			return false
@@ -46,5 +46,5 @@ end
 
 return {
 	slot = slot,
-	is_full = is_full,
+	isFull = isFull,
 }

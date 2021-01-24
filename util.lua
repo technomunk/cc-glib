@@ -47,7 +47,7 @@ local function index(col, el, cmp)
 end
 
 -- Prompt the user for a yes/no answer
-local function yes_no_prompt()
+local function promptYesNo()
 	io.write("(y/n)")
 	local ans = nil
 	repeat
@@ -59,13 +59,13 @@ end
 -- Ask the user a yes/no question
 local function ask(question)
 	io.write(question)
-	return yes_no_prompt()
+	return promptYesNo()
 end
 
 return {
 	last = last,
 	first = first,
 	last = last,
-	yes_no_prompt = yes_no_prompt,
+	promptYesNo = promptYesNo,
 	ask = ask,
 }
