@@ -84,8 +84,8 @@ local nav = {
 	
 	-- Turn the navigator to face in such direction, that
 	-- forward motion will affect x, z coordinates accordingly
-	turnTo = function(self, dx, dy)
-		assert(math.abs(dx) + math.abs(dy) == 1, "invalid direction")
+	turnTo = function(self, dx, dz)
+		assert(math.abs(dx) + math.abs(dz) == 1, "invalid direction")
 		if dx ~= 0 then
 			if self.dx == 0 then
 				if self.dz == dx then
@@ -124,13 +124,21 @@ local nav = {
 		end
 
 		if self.x ~= x then
-			self:turnTo(1, 0)
-			self:goForth(x - self.x)
+			if self.x > x then
+				self:turnTo(-1, 0)
+			elseif self.x < x then
+				self:turnTo(1, 0)
+			end
+			self:goForth(math.abs(x - self.x))
 		end
 		
 		if self.z ~= z then
-			self:turnTo(0, 1)
-			self:goForth(z - self.z)
+			if self.z > z then
+				self:turnTo(0, -1)
+			elseif self.z < z then
+				self:turnTo(0, 1)
+			end
+			self:goForth(math.abs(z - self.z))
 		end
 	end,
 }
