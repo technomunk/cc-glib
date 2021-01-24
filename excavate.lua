@@ -1,7 +1,7 @@
 -- Improved excavation procedure
 
 local usage = [=[
-excavate up|down [[radius|x], y, z]
+excavate up|down [x [y [z]]]
 Excavates a X*Y*Z cube in front of the turtle,
 depositing mined items into the chest behind the
 starting position if set to.]=]
@@ -25,20 +25,17 @@ local sx, sy, sz = 16, 16, 16
 
 if #args > 1 then
 	sx = tonumber(args[2])
-	if sx < 1 then
-		error("excavate expects a valid radius")
-	end
-	if #args > 3 then
+	sy = sx
+	sz = sx
+	if #args > 2 then
 		sy = tonumber(args[3])
-		sz = tonumber(args[4])
-		if sy < 1 or sz < 1 then
-			error("excavate expects positive size")
+		if #args > 3 then
+			sz = tonumber(args[4])
 		end
-	else
-		sy = sx
-		sz = sx
 	end
 end
+
+assert(sx > 0 and sy > 0 and sz > 0, "excavate requires positive size")
 
 local bucket_slot = inv.slot("minecraft:bucket")
 
