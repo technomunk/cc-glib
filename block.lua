@@ -9,7 +9,7 @@ end
 -- Check if hte inspected block is a chest
 local function isChest(exists, block)
 	block = block or exists
-	return exists and block.tags["forge/chests"]
+	return exists and block.tags["forge:chests"]
 end
 
 return {

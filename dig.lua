@@ -92,7 +92,7 @@ local function returnItems()
 end
 
 local function returnItemsIfFullInv()
-	if chest and inv.is_full() then
+	if chest and inv.isFull() then
 		returnItems()
 	end
 end
