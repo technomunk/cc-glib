@@ -260,6 +260,10 @@ local function turn()
 	end
 end
 
+if bucket_slot then
+	turtle.select(bucket_slot)
+end
+
 if py ~= sy then
 	if dy > 0 then
 		dig_or_scoop_up()
