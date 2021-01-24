@@ -14,6 +14,7 @@ end
 
 local util = require "util"
 local inv = require "inventory"
+local block = require "block"
 
 assert(type(args[1]) == "string" and (args[1] == "up" or args[1] == "down"), "excavate expects up or down")
 local dy = 1
@@ -39,12 +40,20 @@ if #args > 1 then
 	end
 end
 
-local chest = false
-if util.ask("Is there a chest behind turtle?") then
-	chest = true
-elseif not util.ask("Continue anyway?") then
+local bucket_slot = inv.slot("minecraft:bucket")
+
+if not bucket_slot and not util.ask("A bucket is recommended, continue without?") then
 	error("Operation aborted")
 end
+
+turtle.turnLeft()
+turtle.turnLeft()
+local chest = block.is_chest(turtle.inspect())
+if not chest and not util.ask("Chest not found, continue anyway?") then
+	error("Operation aborted")
+end
+turtle.turnLeft()
+turtle.turnLeft()
 
 if sy > 256 then
 	sy = 256
@@ -65,35 +74,42 @@ end
 local px, py, pz = 0, 0, 0
 local dx, dz = 0, 1
 local dug, scooped = 0, 0
-local bucket_slot = inv.slot("minecraft:bucket")
 
 local function turn_left()
-	turtle.turnLeft()
-	dx, dz = -dz, dx
+	if turtle.turnLeft() then
+		dx, dz = -dz, dx
+	end
 end
 
 local function turn_right()
-	turtle.turnRight()
-	dx, dz = dz, -dx
+	if turtle.turnRight() then
+		dx, dz = dz, -dx
+	end
 end
 
 local function up()
-	local ok = turtle.up()
-	py = py + 1
-	return ok
+	if turtle.up() then
+		py = py + 1
+		return true
+	end
+	return false
 end
 
 local function down()
-	local ok = turtle.down()
-	py = py - 1
-	return ok
+	if turtle.down() then
+		py = py - 1
+		return true
+	end
+	return false
 end
 
 local function forward()
-	local ok = turtle.forward()
-	px = px + dx
-	pz = pz + dz
-	return ok
+	if turtle.forward() then
+		px = px + dx
+		pz = pz + dz
+		return true
+	end
+	return false
 end
 
 local function go_to(x, y, z, fx, fz)
@@ -156,15 +172,11 @@ local function return_if_full_inv()
 	end
 end
 
-local function is_lava(block)
-	return block.name == "minecraft:lava" and block.state.level == 0
-end
-
 local function _dig_or_scoop(inspect, dig, scoop)
 	if bucket_slot then
-		found, block = inspect()
+		found, b = inspect()
 		if found then
-			if is_lava(block) then
+			if block.is_lava(b) then
 				scoop()
 				turtle.refuel()
 				scooped = scooped + 1
@@ -205,7 +217,8 @@ local function dig_or_scoop_down()
 end
 
 local function progress()
-	if forward() or (dig_or_scoop() and forward()) then
+	dig_or_scoop()
+	if forward() then
 		if dy > 0 then
 			if py < sy then
 				dig_or_scoop_up()
@@ -284,7 +297,7 @@ repeat
 				return finish()
 			end
 		else
-			if not down() or not (down() or dig_or_scoop_down() or down() then
+			if not down() or not (down() or dig_or_scoop_down() or down()) then
 				return finish()
 			end
 		end
