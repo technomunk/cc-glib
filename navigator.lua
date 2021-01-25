@@ -129,7 +129,9 @@ local nav = {
 			elseif self.x < x then
 				self:turnTo(1, 0)
 			end
-			self:goForth(math.abs(x - self.x))
+			if not self:goForth(math.abs(x - self.x)) then
+				return false
+			end
 		end
 		
 		if self.z ~= z then
@@ -138,8 +140,11 @@ local nav = {
 			elseif self.z < z then
 				self:turnTo(0, 1)
 			end
-			self:goForth(math.abs(z - self.z))
+			if not self:goForth(math.abs(z - self.z)) then
+				return false
+			end
 		end
+		return true
 	end,
 }
 
