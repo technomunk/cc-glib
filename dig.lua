@@ -86,7 +86,7 @@ local function returnItems()
 	end
 	-- Execute goTo in reverse order, as other paths may be blocked
 	assert(nav:goTo(0, 0, z), "failed to return to digging")
-	assert(nav:goTo(x, 0, z), "failed to return to digging")
+	assert(nav:goTo(0, y, z), "failed to return to digging")
 	assert(nav:goTo(x, y, z), "failed to return to digging")
 	nav:turnTo(dx, dz)
 end
@@ -97,7 +97,20 @@ local function returnItemsIfFullInv()
 	end
 end
 
-local function _digOrScoop(detect, inspect, dig, scoop)
+local function digGravel(detect, dig)
+	while detect() do
+		returnItemsIfFullInv()
+		if dig() then
+			dug = dug + 1
+			sleep()
+		else
+			return false
+		end
+	end
+	return true
+end
+
+local function digOrScoop(inspect, dig, scoop)
 	if bucketSlot then
 		if block.isLava(inspect()) then
 			scoop()
@@ -108,27 +121,19 @@ local function _digOrScoop(detect, inspect, dig, scoop)
 		end
 	end
 	
-	while detect() do
-		returnItemsIfFullInv()
-		if dig() do
-			dug = dug + 1
-			sleep(.1)
-		else
-			return false
-		end
-	end
+	return dig()
 end
 
-local function digOrScoop()
-	return _digOrScoop(turtle.detect, turtle.inspect, turtle.dig, turtle.place)
+local function digOrScoopForth()
+	return digOrScoop(turtle.inspect, function() return digGravel(turtle.detect, turtle.dig) end, turtle.place)
 end
 
 local function digOrScoopUp()
-	return _digOrScoop(turtle.detectUp, turtle.inspectUp, turtle.digUp, turtle.placeUp)
+	return digOrScoop(turtle.inspectUp, function() return digGravel(turtle.detectUp, turtle.digUp) end, turtle.placeUp)
 end
 
 local function digOrScoopDown()
-	return _digOrScoop(turtle.detectDown, turtle.inspectDown, turtle.digDown, turtle.placeDown)
+	return digOrScoop(turtle.inspectDown, turtle.digDown, turtle.placeDown)
 end
 
 local function printProgress(done, total)
@@ -144,7 +149,7 @@ local function printProgress(done, total)
 end
 
 local function progress()
-	digOrScoop()
+	digOrScoopForth()
 	done = done + 1
 	if nav:goForth() then
 		if nav.y < maxY then
