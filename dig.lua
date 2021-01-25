@@ -40,16 +40,12 @@ assert(sx > 0 and sy > 0 and sz > 0, "dig requires positive size")
 
 local bucketSlot = inv.slot("minecraft:bucket")
 
-bucketSlot
-	or util.ask("A bucket is recommended, continue without?")
-	or error("operation aborted")
+assert(bucketSlot or util.ask("A bucket is recommended, continue without?"), "operation aborted")
 
 turtle.turnLeft()
 turtle.turnLeft()
 local chest = block.isChest(turtle.inspect())
-chest
-	or util.ask("Chest not found, continue anyway?")
-	or error("operation aborted")
+assert(chest or util.ask("Chest not found, continue anyway?"), "operation aborted")
 turtle.turnLeft()
 turtle.turnLeft()
 
@@ -57,8 +53,7 @@ if sy > 256 then
 	sy = 256
 end
 
-util.ask("Excavate "..sx.."x"..sy.."x"..sz.." area? ("..sx*sy*sz.." blocks)?")
-	or error("operation aborted")
+assert(util.ask("Excavate "..sx.."x"..sy.."x"..sz.." area? ("..sx*sy*sz.." blocks)?"), "operation aborted")
 
 sx = sx - 1
 sy = sy - 1
@@ -75,8 +70,7 @@ local dug, scooped = 0, 0
 
 local function returnItems()
 	local x, y, z, dx, dz = nav.x, nav.y, nav.z, nav.dx, nav.dz
-	nav:goTo(0, 0, 0)
-		or error("failed to return home")
+	assert(nav:goTo(0, 0, 0), "failed to return home")
 	nav:turnTo(0, -1)
 	for i=1, 16 do
 		if i ~= bucketSlot then
@@ -87,8 +81,7 @@ local function returnItems()
 	if bucketSlot then
 		turtle.select(bucketSlot)
 	end
-	nav:goTo(x, y, z)
-		or error("failed to return to digging")
+	assert(nav:goTo(x, y, z), "failed to return to digging")
 	nav:turnTo(dx, dz)
 end
 
@@ -152,8 +145,7 @@ local function progress()
 end
 
 local function finish()
-	nav:goTo(0, 0, 0)
-		or error("failed to return home")
+	assert(nav:goTo(0, 0, 0), "failed to return home")
 	nav:turnTo(0, -1)
 	if chest then
 		for i=1, 16 do
