@@ -73,6 +73,16 @@ local dug, scooped = 0, 0
 local function returnItems()
 	local x, y, z, dx, dz = nav.x, nav.y, nav.z, nav.dx, nav.dz
 	print("Returning items from ", x, y, z)
+	if y > 0 and turtle.detectDown() then
+		assert(turtle.digDown(), "failed to make path home")
+		dug = dug + 1
+	elseif y < 0 then
+		while turtle.detectUp() do
+			assert(turtle.digUp(), "failed to make path home")
+			dug = dug + 1
+			sleep()
+		end
+	end
 	assert(nav:goTo(0, 0, 0), "failed to return home")
 	nav:turnTo(0, -1)
 	for i=1, 16 do
@@ -86,7 +96,7 @@ local function returnItems()
 	end
 	-- Execute goTo in reverse order, as other paths may be blocked
 	assert(nav:goTo(0, 0, z), "failed to return to digging")
-	assert(nav:goTo(0, y, z), "failed to return to digging")
+	assert(nav:goTo(x, 0, z), "failed to return to digging")
 	assert(nav:goTo(x, y, z), "failed to return to digging")
 	nav:turnTo(dx, dz)
 end

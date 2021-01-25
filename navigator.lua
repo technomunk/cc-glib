@@ -116,6 +116,13 @@ local nav = {
 			x = x.x
 		end
 		assert(x and y and z, "no coordinates given")
+		if self.y < y and not self:goUp(y - self.y) then
+			return false
+		end
+		if self.y > y and not self:goDown(self.y - y) then
+			return false
+		end
+
 		if self.x ~= x then
 			if self.x > x then
 				self:turnTo(-1, 0)
@@ -125,13 +132,6 @@ local nav = {
 			if not self:goForth(math.abs(x - self.x)) then
 				return false
 			end
-		end
-
-		if self.y < y and not self:goUp(y - self.y) then
-			return false
-		end
-		if self.y > y and not self:goDown(self.y - y) then
-			return false
 		end
 		
 		if self.z ~= z then
@@ -144,7 +144,7 @@ local nav = {
 				return false
 			end
 		end
-		
+
 		return true
 	end,
 }
