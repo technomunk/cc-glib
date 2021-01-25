@@ -239,7 +239,7 @@ repeat
 		end
 	end
 
-	print("Cleared levels [", math.max(minY, nav.y - 1), " : ", math.min(maxY, nav.y + 1), "]")
+	print("Cleared levels [", math.max(minY, nav.y - 1), ':', math.min(maxY, nav.y + 1), "]")
 	if sy - math.abs(nav.y) < 3 then
 		done = total
 	else
