@@ -40,16 +40,16 @@ assert(sx > 0 and sy > 0 and sz > 0, "dig requires positive size")
 
 local bucketSlot = inv.slot("minecraft:bucket")
 
-if not bucketSlot and not util.ask("A bucket is recommended, continue without?") then
-	error("Operation aborted")
-end
+bucketSlot
+	or util.ask("A bucket is recommended, continue without?")
+	or error("operation aborted")
 
 turtle.turnLeft()
 turtle.turnLeft()
 local chest = block.isChest(turtle.inspect())
-if not chest and not util.ask("Chest not found, continue anyway?") then
-	error("Operation aborted")
-end
+chest
+	or util.ask("Chest not found, continue anyway?")
+	or error("operation aborted")
 turtle.turnLeft()
 turtle.turnLeft()
 
@@ -57,9 +57,8 @@ if sy > 256 then
 	sy = 256
 end
 
-if not util.ask("Excavate "..sx.."x"..sy.."x"..sz.." area? ("..sx*sy*sz.." blocks)?") then
-	error("Operation aborted")
-end
+util.ask("Excavate "..sx.."x"..sy.."x"..sz.." area? ("..sx*sy*sz.." blocks)?")
+	or error("operation aborted")
 
 sx = sx - 1
 sy = sy - 1
@@ -77,6 +76,7 @@ local dug, scooped = 0, 0
 local function returnItems()
 	local x, y, z, dx, dz = nav.x, nav.y, nav.z, nav.dx, nav.dz
 	nav:goTo(0, 0, 0)
+		or error("failed to return home")
 	nav:turnTo(0, -1)
 	for i=1, 16 do
 		if i ~= bucketSlot then
@@ -88,6 +88,7 @@ local function returnItems()
 		turtle.select(bucketSlot)
 	end
 	nav:goTo(x, y, z)
+		or error("failed to return to digging")
 	nav:turnTo(dx, dz)
 end
 
@@ -98,33 +99,27 @@ local function returnItemsIfFullInv()
 end
 
 local function _digOrScoop(inspect, dig, scoop)
-	if bucketSlot then
-		found, b = inspect()
-		if found then
-			if block.isLava(b) then
+	found, b = inspect()
+	if found then
+		if block.isLava(b) then
+			if bucketSlot then
 				scoop()
 				turtle.refuel()
 				scooped = scooped + 1
-				return true
-			else
+			end
+		elseif block.falls(b) then
+			repeat
 				returnItemsIfFullInv()
 				if dig() then
 					dug = dug + 1
-					return true
-				else
-					return false
+					sleep(.1)
 				end
+			until not inspect()
+		else
+			returnItemsIfFullInv()
+			if dig() then
+				dug = dug + 1
 			end
-		else
-			return true
-		end
-	else
-		returnItemsIfFullInv()
-		if dig() then
-			dug = dug + 1
-			return true
-		else
-			return false
 		end
 	end
 end
@@ -158,6 +153,7 @@ end
 
 local function finish()
 	nav:goTo(0, 0, 0)
+		or error("failed to return home")
 	nav:turnTo(0, -1)
 	if chest then
 		for i=1, 16 do

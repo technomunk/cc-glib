@@ -46,6 +46,17 @@ local function index(col, el, cmp)
 	end
 end
 
+-- Check if the provided collection contains provided element
+local function contains(col, el)
+	assert(type(col) == "table", "contain requires a collection")
+	for i, v in ipairs(col) do
+		if v == el then
+			return true
+		end
+	end
+	return false
+end
+
 -- Prompt the user for a yes/no answer
 local function promptYesNo()
 	io.write("(y/n)")
@@ -66,6 +77,7 @@ return {
 	last = last,
 	first = first,
 	last = last,
+	contains = contains,
 	promptYesNo = promptYesNo,
 	ask = ask,
 }
