@@ -81,6 +81,9 @@ local function returnItems()
 	if bucketSlot then
 		turtle.select(bucketSlot)
 	end
+	-- Execute goTo in reverse order, as other paths may be blocked
+	assert(nav:goTo(0, 0, z), "failed to return to digging")
+	assert(nav:goTo(x, 0, z), "failed to return to digging")
 	assert(nav:goTo(x, y, z), "failed to return to digging")
 	nav:turnTo(dx, dz)
 end
