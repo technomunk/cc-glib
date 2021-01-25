@@ -72,6 +72,7 @@ local dug, scooped = 0, 0
 
 local function returnItems()
 	local x, y, z, dx, dz = nav.x, nav.y, nav.z, nav.dx, nav.dz
+	print("Returning items from ", x, y, z)
 	assert(nav:goTo(0, 0, 0), "failed to return home")
 	nav:turnTo(0, -1)
 	for i=1, 16 do
@@ -96,35 +97,38 @@ local function returnItemsIfFullInv()
 	end
 end
 
-local function _digOrScoop(inspect, dig, scoop)
+local function _digOrScoop(detect, inspect, dig, scoop)
 	if bucketSlot then
 		if block.isLava(inspect()) then
 			scoop()
 			turtle.refuel()
 			scooped = scooped + 1
 			print("Refueled, fuel level: ", turtle.getFuelLevel())
-			return
+			return true
 		end
 	end
 	
-	returnItemsIfFullInv()
-	while dig() do
-		dug = dug + 1
-		sleep(.1)
-		-- some gravel or sand may get discarded here
+	while detect() do
+		returnItemsIfFullInv()
+		if dig() do
+			dug = dug + 1
+			sleep(.1)
+		else
+			return false
+		end
 	end
 end
 
 local function digOrScoop()
-	return _digOrScoop(turtle.inspect, turtle.dig, turtle.place)
+	return _digOrScoop(turtle.detect, turtle.inspect, turtle.dig, turtle.place)
 end
 
 local function digOrScoopUp()
-	return _digOrScoop(turtle.inspectUp, turtle.digUp, turtle.placeUp)
+	return _digOrScoop(turtle.detectUp, turtle.inspectUp, turtle.digUp, turtle.placeUp)
 end
 
 local function digOrScoopDown()
-	return _digOrScoop(turtle.inspectDown, turtle.digDown, turtle.placeDown)
+	return _digOrScoop(turtle.detectDown, turtle.inspectDown, turtle.digDown, turtle.placeDown)
 end
 
 local function printProgress(done, total)
@@ -135,6 +139,8 @@ local function printProgress(done, total)
 	term.setTextColor(colors.magenta)
 	term.write(string.format(" %2d%%", done/total*100))
 	term.setTextColor(color)
+	local x, y = term.getCursorPos()
+	term.setCursorPos(1, y)
 end
 
 local function progress()
