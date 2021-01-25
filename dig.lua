@@ -55,6 +55,8 @@ end
 
 assert(util.ask("Excavate "..sx.."x"..sy.."x"..sz.." area? ("..sx*sy*sz.." blocks)?"), "operation aborted")
 
+local done, total = 0, sx*sy*sz
+
 sx = sx - 1
 sy = sy - 1
 sz = sz - 1
@@ -95,28 +97,21 @@ local function returnItemsIfFullInv()
 end
 
 local function _digOrScoop(inspect, dig, scoop)
-	found, b = inspect()
-	if found then
-		if block.isLava(b) then
-			if bucketSlot then
-				scoop()
-				turtle.refuel()
-				scooped = scooped + 1
-			end
-		elseif block.falls(b) then
-			repeat
-				returnItemsIfFullInv()
-				if dig() then
-					dug = dug + 1
-					sleep(.1)
-				end
-			until not inspect()
-		else
-			returnItemsIfFullInv()
-			if dig() then
-				dug = dug + 1
-			end
+	if bucketSlot then
+		if block.isLava(inspect()) then
+			scoop()
+			turtle.refuel()
+			scooped = scooped + 1
+			print("Refueled, fuel level: ", turtle.getFuelLevel())
+			return
 		end
+	end
+	
+	returnItemsIfFullInv()
+	while dig() do
+		dug = dug + 1
+		sleep(.1)
+		-- some gravel or sand may get discarded here
 	end
 end
 
@@ -132,15 +127,29 @@ local function digOrScoopDown()
 	return _digOrScoop(turtle.inspectDown, turtle.digDown, turtle.placeDown)
 end
 
+local function printProgress(done, total)
+	local color = term.getTextColor()
+	term.clearLine()
+	term.setTextColor(colors.yellow)
+	term.write(string.format("%d/%d", done, total))
+	term.setTextColor(colors.magenta)
+	term.write(string.format(" %2d%%", done/total*100))
+	term.setTextColor(color)
+end
+
 local function progress()
 	digOrScoop()
+	done = done + 1
 	if nav:goForth() then
 		if nav.y < maxY then
 			digOrScoopUp()
+			done = done + 1
 		end
 		if nav.y > minY then
 			digOrScoopDown()
+			done = done + 1
 		end
+		printProgress(done, total)
 		return true
 	else
 		return false
@@ -201,7 +210,6 @@ if sy > 0 then
 	end
 end
 
-local done = false
 repeat
 	for x=0, sx do
 		for z=1, sz do
@@ -209,6 +217,7 @@ repeat
 				return finish()
 			end
 		end
+		print("Cleared line ", x)
 		turn()
 		if x ~= sx and not progress() then
 			return finish()
@@ -219,8 +228,9 @@ repeat
 		end
 	end
 
+	print("Cleared levels [", math.max(minY, nav.y - 1), " : ", math.min(maxY, nav.y + 1), "]")
 	if sy - math.abs(nav.y) < 3 then
-		done = true
+		done = total
 	else
 		if dy > 0 then
 			if not nav:goUp() then return finish() end
@@ -242,6 +252,6 @@ repeat
 			end
 		end
 	end
-until done
+until done >= total
 
 return finish()
