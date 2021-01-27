@@ -85,40 +85,35 @@ local function newDiv(lhs, rhs)
 end
 
 -- Remove spaces on the left side of the string
-local function pruneLeft(str)
-	local spaces = " \t\n\r"
-	for i = 1, #str do
-		if not spaces:find(str:sub(i, i)) then
-			return str:sub(i, #str)
-		end
+local function pruneRight(str)
+	local spaces = str:match("\s$")
+	if spaces then
+		return str:sub(1, #str - #spaces)
 	end
+	return str
 end
 
 -- Remove the first number in the provided string
 local function popNumber(str)
-	local foundDot = false
-	local numbers = "0123456789"
-	for i = 1, #str do
-		local char = str:sub(i, i)
-		if char == '.' then
-			assert(not foundDot, "expected a number, got \""..str..'\"')
-			foundDot = true
-		elseif not numbers:find(char) then
-			assert(i ~= 1, "expected a number, got \""..str..'\"')
-			return tonumber(str:sub(1, i - 1)), str:sub(i, #str)
-		elseif i == #str then
-			return tonumber(str)
-		end
+	local exp = str:match("e%d*$")
+	if exp then
+		str = str:sub(1, #str - #exp
 	end
-	error("failed to parse number in \""..str..'\"')
+	local num = str:match("%d+%.?%d*$")
+	assert(num, "expected a number, got \""..str..'\"')
+	str = str:sub(1, #str-#num)
+	if exp then
+		num = num..exp
+	end
+	return tonumber(num), str
 end
 
 -- Process the first token in the provided string
 local function popToken(str)
 	local tokens = "()+-*x/"
-	local char = str:sub(1, 1)
-	if tokens:find(char) then
-		return char, str:sub(2, #str)
+	local char = str:sub(#str, #str)
+	if tokens:find('%'..char) then
+		return char, str:sub(1, #str - 1)
 	else
 		return popNumber(str)
 	end
@@ -135,7 +130,7 @@ local function tokenize(arr)
 		local rest = arr[i]
 		local token = nil
 		while rest do
-			token, rest = popToken(pruneLeft(rest))
+			token, rest = popToken(pruneRight(rest))
 			table.insert(result, token)
 		end
 	end
