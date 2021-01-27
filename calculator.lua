@@ -101,13 +101,16 @@ local function popNumber(str)
 	for i = 1, #str do
 		local char = str:sub(i, i)
 		if char == '.' then
-			assert(not foundDot, "expected a number, got \""..str:sub(1, i)..'\"')
+			assert(not foundDot, "expected a number, got \""..str..'\"')
 			foundDot = true
 		elseif not numbers:find(char) then
-			assert(i ~= #str, "expected a number, got \""..str:sub(1, i)..'\"')
-			return tonumber(str:sub(1, i)), str:sub(i+1, #str)
+			assert(i ~= 1, "expected a number, got \""..str..'\"')
+			return tonumber(str:sub(1, i - 1)), str:sub(i, #str)
+		elseif i == #str then
+			return tonumber(str)
 		end
 	end
+	error("failed to parse number in \""..str..'\"')
 end
 
 -- Process the first token in the provided string
