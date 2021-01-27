@@ -97,7 +97,7 @@ end
 local function popNumber(str)
 	local exp = str:match("e%d*$")
 	if exp then
-		str = str:sub(1, #str - #exp
+		str = str:sub(1, #str - #exp)
 	end
 	local num = str:match("%d+%.?%d*$")
 	assert(num, "expected a number, got \""..str..'\"')
@@ -112,7 +112,10 @@ end
 local function popToken(str)
 	local tokens = "()+-*x/"
 	local char = str:sub(#str, #str)
-	if tokens:find('%'..char) then
+	if char == '%' then
+		char = '%%'
+	end
+	if tokens:find(char) then
 		return char, str:sub(1, #str - 1)
 	else
 		return popNumber(str)
