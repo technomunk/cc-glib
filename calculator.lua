@@ -192,7 +192,6 @@ local function parse(tokens)
 end
 
 return {
-	tokenize = tokenize,
 	parse = function(str) return parse(tokenize(str)) end,
 	eval = function(str) return parse(tokenize(str))() end,
 }
