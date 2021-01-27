@@ -126,7 +126,7 @@ local function tokenize(arr)
 		arr = { arr, }
 	end
 
-	for i = 1, #arr do
+	for i = #arr, 1, -1 do
 		local rest = arr[i]
 		local token = nil
 		while #rest > 0 do
