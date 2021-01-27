@@ -112,10 +112,7 @@ end
 local function popToken(str)
 	local tokens = "()+-*x/"
 	local char = str:sub(#str, #str)
-	if char == '%' then
-		char = '%%'
-	end
-	if tokens:find(char) then
+	if tokens:find(char, 1, true) then
 		return char, str:sub(1, #str - 1)
 	else
 		return popNumber(str)
