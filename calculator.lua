@@ -132,7 +132,7 @@ local function tokenize(arr)
 	for i = 1, #arr do
 		local rest = arr[i]
 		local token = nil
-		while rest do
+		while #rest > 0 do
 			token, rest = popToken(pruneRight(rest))
 			table.insert(result, token)
 		end
