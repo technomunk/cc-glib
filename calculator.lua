@@ -2,7 +2,7 @@
 
 local metaNum = {
 	__call = function(self)
-		return self.val,
+		return self.val
 	end,
 	__tostring = function(self)
 		return tostring(self.val)
@@ -101,10 +101,10 @@ local function popNumber(str)
 	for i = 1, #str do
 		local char = str:sub(i, i)
 		if char == '.' then
-			assert(not foundDot, '\"'..str.."\" contains invalid number!")
+			assert(not foundDot, "expected a number, got \""..str:sub(1, i)..'\"')
 			foundDot = true
 		elseif not numbers:find(char) then
-			assert(i ~= #str, '\"'..str.."\" does not end with a number!")
+			assert(i ~= #str, "expected a number, got \""..str:sub(1, i)..'\"')
 			return tonumber(str:sub(1, i)), str:sub(i+1, #str)
 		end
 	end
@@ -136,20 +136,21 @@ local function tokenize(arr)
 			table.insert(result, token)
 		end
 	end
+	return result
 end
 
 local parseExpr = nil
 
 -- Parse a number of an expression surrounded by parenthesis 
 local function parsePrimaryExpr(tokens)
-	local token = table.remove(tokens)
-	if token == '(' then
+	local t = table.remove(tokens)
+	if t == '(' then
 		local expr = parseExpr(tokens)
 		assert(table.remove(tokens) == ')', "expected \")\"")
 		return expr
 	else
-		assert(type(token) == "number", "expected a number")
-		return newNum(token)
+		assert(type(t) == "number", "expected a number")
+		return newNum(t)
 	end
 end
 
@@ -193,6 +194,7 @@ local function parse(tokens)
 end
 
 return {
+	tokenize = tokenize,
 	parse = function(str) return parse(tokenize(str)) end,
 	eval = function(str) return parse(tokenize(str))() end,
 }
