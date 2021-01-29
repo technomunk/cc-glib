@@ -11,7 +11,7 @@ end
 -- Check if the inspected block is a chest
 local function isChest(exists, block)
 	block = block or exists
-	return exists and block.tags["forge:chests"]
+	return exists and (block.tags["forge:chests"] or block.name:find("chest"))
 end
 
 local fallingBlocks = {
