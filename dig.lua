@@ -80,7 +80,6 @@ local function returnItems()
 		while turtle.detectUp() do
 			assert(turtle.digUp(), "failed to make path home")
 			dug = dug + 1
-			sleep()
 		end
 	end
 	assert(nav:goTo(0, 0, 0), "failed to return home")
@@ -112,7 +111,6 @@ local function digGravel(detect, dig)
 		returnItemsIfFullInv()
 		if dig() then
 			dug = dug + 1
-			sleep()
 		else
 			return false
 		end
