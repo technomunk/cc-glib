@@ -1,7 +1,7 @@
 -- Get all the relevant files from the repository
 
 local args = {...}
-local outDir = (args[0] or "glib").."/"
+local outDir = (args[1] or "glib").."/"
 
 if not fs.exists("json.lua") then
 	shell.run("wget", "https://raw.githubusercontent.com/rxi/json.lua/master/json.lua")
