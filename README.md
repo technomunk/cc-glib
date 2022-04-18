@@ -6,5 +6,7 @@ Collection of lua scripts to be use with [ComputerCraft](http://www.computercraf
 
 The repository contains a neat [bootstrapping](bootstrap.lua) script that downloads the latest files from this repo:
 ```sh
-wget run https://raw.githubusercontent.com/technomunk/cc-glib/main/bootstrap.lua
+wget https://raw.githubusercontent.com/technomunk/cc-glib/main/bootstrap.lua
+bootstrap
+rm bootstrap.lua
 ```
