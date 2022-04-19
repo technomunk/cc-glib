@@ -7,7 +7,7 @@ if not fs.exists("json.lua") then
 end
 
 if not fs.exists("download.lua") then
-	shell.run("wget", "https://raw.githubusercontent.com/technomunk/cc-glib/main/download.lua")
+	shell.run("wget", "https://raw.githubusercontent.com/technomunk/cc-glib/main/dlglib.lua")
 end
 
-shell.run("download.lua", args[1])
+shell.run("dlglib.lua", args[1])
