@@ -45,6 +45,7 @@ while (downloaded + failed) < expectedFiles do
 		url, response = eventData[2], eventData[3]
 		saveFile(filenames[url], response.readAll())
 		downloaded = downloaded + 1
+		write("downloaded "..filenames[url].."\r")
 	elseif event == "http_failure" then
 		url, err = eventData[2], eventData[3]
 		print("couldn't download "..filenames[url]..": "..err)
