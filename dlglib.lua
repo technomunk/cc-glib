@@ -24,30 +24,32 @@ local response = http.get("https://api.github.com/repos/technomunk/cc-glib/conte
 assert(response.getResponseCode() == 200, "failed to get repository contents")
 
 local files = json.decode(response.readAll())
-local expectedFiles = {}
+local filenames = {}
+local expectedFiles = 0
 
 for _, file in ipairs(files) do
 	assert(file["type"], "unsupported file type: "..file["type"])
 	http.request(file["download_url"])
-	expectedFiles[file["download_url"]] = dir..file["name"]
+	filenames[file["download_url"]] = dir..file["name"]
+	expectedFiles = expectedFiles + 1
 end
 
 local downloaded, failed = 0, 0
 
-while (downloaded + failed) < #expectedFiles do
+while (downloaded + failed) < expectedFiles do
 	local eventData = os.pullEvent()
 	local event = eventData[1]
 	local url, err
 
 	if event == "http_success" then
 		url, response = eventData[2], eventData[3]
-		saveFile(expectedFiles[url], response.readAll())
+		saveFile(filenames[url], response.readAll())
 		downloaded = downloaded + 1
 	elseif event == "http_failure" then
 		url, err = eventData[2], eventData[3]
-		print("couldn't download "..expectedFiles[url]..": "..err)
+		print("couldn't download "..filenames[url]..": "..err)
 		failed = failed + 1
 	end
 end
 
-print("downloaded "..downloaded.."/"..#expectedFiles.." files")
+print("downloaded "..downloaded.."/"..expectedFiles.." files")
