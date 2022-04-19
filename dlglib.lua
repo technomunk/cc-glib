@@ -37,18 +37,13 @@ end
 local downloaded, failed = 0, 0
 
 while (downloaded + failed) < expectedFiles do
-	local eventData = os.pullEvent()
-	local event = eventData[1]
-	local url, err
+	local event, url, response = os.pullEvent()
 
 	if event == "http_success" then
-		url, response = eventData[2], eventData[3]
 		saveFile(filenames[url], response.readAll())
 		downloaded = downloaded + 1
-		write("downloaded "..filenames[url].."\r")
 	elseif event == "http_failure" then
-		url, err = eventData[2], eventData[3]
-		print("couldn't download "..filenames[url]..": "..err)
+		print("couldn't download "..filenames[url]..": "..response)
 		failed = failed + 1
 	end
 end
