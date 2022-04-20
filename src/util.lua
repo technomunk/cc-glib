@@ -87,8 +87,8 @@ end
 --- @param default boolean|nil the default value if the user just presses enter
 --- @return boolean yes whether the user answered "yes"
 local function ask(question, default)
-	io.write(question, default)
-	return promptYesNo()
+	io.write(question)
+	return promptYesNo(default)
 end
 
 return {
