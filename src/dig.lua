@@ -6,7 +6,7 @@ Digs up a X*Y*Z cube in front of the turtle,
 depositing mined items into the chest behind the
 starting position if set to.]=]
 
-local args = {...}
+local args = { ... }
 
 if #args == 0 then
 	return usage
@@ -40,12 +40,12 @@ assert(sx > 0 and sy > 0 and sz > 0, "dig requires positive size")
 
 local bucketSlot = inv.slot("minecraft:bucket")
 
-assert(bucketSlot or util.ask("A bucket is recommended, continue without?"), "operation aborted")
+assert(bucketSlot or util.ask("A bucket is recommended, continue without?", true), "operation aborted")
 
 turtle.turnLeft()
 turtle.turnLeft()
 local chest = block.isChest(turtle.inspect())
-assert(chest or util.ask("Chest not found, continue anyway?"), "operation aborted")
+assert(chest or util.ask("Chest not found, continue anyway?", true), "operation aborted")
 turtle.turnLeft()
 turtle.turnLeft()
 
@@ -53,9 +53,9 @@ if sy > 256 then
 	sy = 256
 end
 
-assert(util.ask("Excavate "..sx.."x"..sy.."x"..sz.." area? ("..sx*sy*sz.." blocks)?"), "operation aborted")
+assert(util.ask(string.format("Excavate %dx%dx%d area? (%d blocks)?", sx, sy, sz, sx * sy * sz), true), "operation aborted")
 
-local done, total = 0, sx*sy*sz
+local done, total = 0, sx * sy * sz
 
 sx = sx - 1
 sy = sy - 1
@@ -84,7 +84,7 @@ local function returnItems()
 	end
 	assert(nav:goTo(0, 0, 0), "failed to return home")
 	nav:turnTo(0, -1)
-	for i=1, 16 do
+	for i = 1, 16 do
 		if i ~= bucketSlot then
 			turtle.select(i)
 			turtle.drop()
@@ -128,7 +128,7 @@ local function digOrScoop(inspect, dig, scoop)
 			return true
 		end
 	end
-	
+
 	return dig()
 end
 
@@ -150,7 +150,7 @@ local function printProgress(done, total)
 	term.setTextColor(colors.yellow)
 	term.write(string.format("%d/%d", done, total))
 	term.setTextColor(colors.magenta)
-	term.write(string.format(" %2d%%", done/total*100))
+	term.write(string.format(" %2d%%", done / total * 100))
 	term.setTextColor(color)
 	local x, y = term.getCursorPos()
 	term.setCursorPos(1, y)
@@ -179,7 +179,7 @@ local function finish()
 	assert(nav:goTo(0, 0, 0), "failed to return home")
 	nav:turnTo(0, -1)
 	if chest then
-		for i=1, 16 do
+		for i = 1, 16 do
 			if i ~= bucketSlot then
 				turtle.select(i)
 				turtle.drop()
@@ -188,10 +188,10 @@ local function finish()
 	end
 	print("Done mining.")
 	if dug > 0 then
-		print("Dug "..dug.." blocks.")
+		print("Dug " .. dug .. " blocks.")
 	end
 	if scooped > 0 then
-		print("Scooped "..scooped.." buckets of lava.")
+		print("Scooped " .. scooped .. " buckets of lava.")
 	end
 	return dug, scooped
 end
@@ -230,8 +230,8 @@ if sy > 0 then
 end
 
 repeat
-	for x=0, sx do
-		for z=1, sz do
+	for x = 0, sx do
+		for z = 1, sz do
 			if not progress() then
 				return finish()
 			end

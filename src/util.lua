@@ -46,7 +46,10 @@ local function index(col, el, cmp)
 	end
 end
 
--- Check if the provided collection contains provided element
+--- Check if the provided collection contains provided element
+--- @param col table collection to search for provided item
+--- @param el any element for which to search the said collection
+--- @return boolean found the element is part of provided collection
 local function contains(col, el)
 	assert(type(col) == "table", "contain requires a collection")
 	for i, v in ipairs(col) do
@@ -57,24 +60,38 @@ local function contains(col, el)
 	return false
 end
 
--- Prompt the user for a yes/no answer
-local function promptYesNo()
-	io.write("(y/n)")
+local YES_VALUES = {"y", "yes", "+"}
+local NO_VALUES = {"n", "no", "-"}
+
+--- Prompt the user for a yes/no answer
+--- @param default boolean|nil the default value if the user just presses enter
+--- @return boolean yes whether the user answered "yes"
+local function promptYesNo(default)
+	if default == nil then
+		io.write("[y/n]")
+	elseif default then
+		io.write("[Y/n]")
+	else
+		io.write("[y/N]")
+	end
+
 	local ans = nil
 	repeat
-		ans = io.read()
-	until ans == 'y' or ans == 'yes' or ans == 'n' or ans == 'no'
-	return ans == 'y' or ans == 'yes'
+		ans = io.read():lower()
+	until (ans == "" and default ~= nil) or contains(YES_VALUES, ans) or contains(NO_VALUES, ans)
+	return (ans == "" and default ~= nil) or contains(YES_VALUES, ans)
 end
 
--- Ask the user a yes/no question
-local function ask(question)
-	io.write(question)
+--- Ask the user a yes/no question
+--- @param question string the question prompt to ask the user
+--- @param default boolean|nil the default value if the user just presses enter
+--- @return boolean yes whether the user answered "yes"
+local function ask(question, default)
+	io.write(question, default)
 	return promptYesNo()
 end
 
 return {
-	last = last,
 	first = first,
 	last = last,
 	contains = contains,
