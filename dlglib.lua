@@ -18,12 +18,10 @@ if dir:sub(#dir) ~= "/" then
 	dir = dir.."/"
 end
 
-local json = require("json")
-
 local response = http.get("https://api.github.com/repos/technomunk/cc-glib/contents/src")
 assert(response.getResponseCode() == 200, "failed to get repository contents")
 
-local files = json.decode(response.readAll())
+local files = textutils.unserializeJSON(response.readAll())
 local filenames = {}
 local expectedFiles = 0
 
