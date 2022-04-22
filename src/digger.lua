@@ -13,14 +13,16 @@ local util = require "util"
 --- @field sz integer horizontal size to dig (parallel to initial direction)
 --- @field dx integer 1|-1 the overall horizontal direction to dig
 --- @field dy integer 1|-1 the overall vertical direction to dig
---- @field bucketSlot integer|nil the slot with the bucket if it is in the inventory
+--- @field bucketSlot? integer the slot with the bucket if it is in the inventory
 --- @field navigator Navigator the navigation class to use
 --- @field chest boolean whether deposit items to a chest
 --- @field dug integer number of blocks dug
 --- @field scooped integer number of buckets of lava scooped for fuel
---- @field waypoint table|nil {x, y, z, dx, dz} navigator state to return to
+--- @field waypoint? table {x, y, z, dx, dz} navigator state to return to
 --- @field done integer number of steps completed
 --- @field total integer total number of steps
+--- @field minY integer minimal achieved y level
+--- @field maxY integer maximal achieved y level
 local diggerArchetype = {
 	sx = 0,
 	sy = 0,
@@ -226,7 +228,8 @@ local diggerArchetype = {
 
 	--- Make the final trip home
 	--- @param self Digger
-	finish = function(self)
+	--- @param message? string the message to print after returning home
+	finish = function(self, message)
 		assert(self.navigator:goTo(0, 0, 0), "failed to return home")
 		self.navigator:turnTo(0, -1)
 		self:dumpInventory()
@@ -236,6 +239,9 @@ local diggerArchetype = {
 		end
 		if self.scooped > 0 then
 			print("Scooped " .. self.scooped .. " buckets of lava.")
+		end
+		if message then
+			print(message)
 		end
 		settings.unset("digger")
 		settings.save(".glib")
@@ -255,18 +261,38 @@ local diggerArchetype = {
 		self.total = (self.sx - 1) * (self.sy - 1) * (self.sz - 1)
 		self:findBucket()
 
+		if self.sy > 1 then
+			if self.dy > 0 then
+				self:digOrScoopUp()
+				if not self.navigator:goUp() then
+					return self:finish("stopped early")
+				end
+				if self.navigator.y < self.maxY then
+					self:digOrScoopUp()
+				end
+			else
+				self:digOrScoopDown()
+				if not self.navigator:goDown() then
+					return self:finish("stopped early")
+				end
+				if self.navigator.y > self.minY then
+					self:digOrScoopDown()
+				end
+			end
+		end
+
 		repeat
 			-- clear a level
 			for x = (self.navigator.x + 1), self.sx do
 				for z = (self.navigator.z + 2), self.sz do
 					if not self:progress() then
-						return self:finish()
+						return self:finish("stopped early")
 					end
 				end
 
 				self:turn()
 				if x ~= self.sx and not self:progress() then
-					return self:finish()
+					return self:finish("stopped early")
 				end
 				self:turn()
 				if x ~= self.sx then
@@ -279,22 +305,22 @@ local diggerArchetype = {
 			else
 				if self.dy > 0 then
 					if not self.navigator:goUp() then
-						return self:finish()
+						return self:finish("stopped early")
 					end
 					self:digOrScoopUp()
 					if not self.navigator:goUp() then
-						return self:finish()
+						return self:finish("stopped early")
 					end
 					if self.navigator.y < self.maxY then
 						self:digOrScoopUp()
 					end
 				else
 					if not self.navigator:goDown() then
-						return self:finish()
+						return self:finish("stopped early")
 					end
 					self:digOrScoopDown()
 					if not self.navigator:goDown() then
-						return self:finish()
+						return self:finish("stopped early")
 					end
 					if self.navigator.y < self.maxY then
 						self:digOrScoopDown()
@@ -308,7 +334,7 @@ local diggerArchetype = {
 local diggerMeta = { __index = diggerArchetype }
 
 --- Instantiate a new digger
---- @param digger table|nil A table with digger parameters or none. Used for composition.
+--- @param digger? table A table with digger parameters or none. Used for composition.
 --- @return Digger New digger instance. Note that if loaded table was provided, it is returned.
 local function new(digger)
 	settings.load(".glib")
@@ -328,7 +354,7 @@ local function new(digger)
 end
 
 --- Load the digger from settings
---- @return Digger|nil
+--- @return Digger?
 local function load()
 	settings.load(".glib")
 	local digger = settings.get("glib.digger", nil)
