@@ -10,7 +10,7 @@ most recent operation.
 ]=]
 
 local digger = require "digger"
-local expect = require "cc.excpect"
+local expect = require "cc.expect"
 local util = require "util"
 
 local function clearStartup()
