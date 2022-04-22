@@ -36,6 +36,7 @@ if args[1] == "--resume" then
 	end
 else
 	dig = digger.new()
+	dig.sx, dig.sy, dig.sz = 9, 9, 9
 
 	if args[1] == "down" then
 		dig.dy = -1
@@ -43,8 +44,7 @@ else
 
 	if #args > 1 then
 		dig.sx = tonumber(args[2])
-		dig.sy = sx
-		dig.sz = sx
+		dig.sy, dig.sz = dig.sx, dig.sx
 		if #args > 2 then
 			dig.sy = tonumber(args[3])
 			if #args > 3 then
