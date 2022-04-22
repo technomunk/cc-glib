@@ -221,6 +221,7 @@ local diggerArchetype = {
 		end
 
 		util.printProgress(self.done, self.total)
+		return true
 	end,
 
 	--- Make the final trip home
@@ -246,7 +247,6 @@ local diggerArchetype = {
 		assert(self.sx > 0 and self.sy > 0 and self.sz > 0, "size to dig must be positive!")
 		assert(self.dx == -1 or self.dx == 1, "dx must be 1 or -1")
 
-
 		self.minY, self.maxY = 0, (self.sy - 1)
 		if self.dy < 0 then
 			self.minY, self.maxY = -self.maxY, 0
@@ -257,8 +257,8 @@ local diggerArchetype = {
 
 		repeat
 			-- clear a level
-			for x = 1, self.sx do
-				for z = 2, self.sz do
+			for x = (self.navigator.x + 1), self.sx do
+				for z = (self.navigator.z + 2), self.sz do
 					if not self:progress() then
 						return self:finish()
 					end
@@ -322,7 +322,7 @@ local function new(digger)
 		settings.save(".glib")
 		digger.navigator.onMove = persist
 	end
-	digger.navigator.onMove = persist
+	persist()
 
 	return digger
 end
@@ -343,7 +343,7 @@ local function load()
 		settings.save(".glib")
 		digger.navigator.onMove = persist
 	end
-	digger.navigator.onMove = persist
+	persist()
 
 	setmetatable(digger, diggerMeta)
 
