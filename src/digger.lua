@@ -316,10 +316,13 @@ local function new(digger)
 	digger = setmetatable(digger or {}, diggerMeta)
 
 	digger.navigator = navigator.new(digger.navigator)
-	digger.navigator.onMove = function()
+	local function persist()
+		digger.navigator.onMove = nil
 		settings.set("glib.digger", digger)
 		settings.save(".glib")
+		digger.navigator.onMove = persist
 	end
+	digger.navigator.onMove = persist
 
 	return digger
 end
@@ -334,10 +337,13 @@ local function load()
 	end
 
 	digger.navigator = navigator.new(digger.navigator)
-	digger.navigator.onMove = function()
+	local function persist()
+		digger.navigator.onMove = nil
 		settings.set("glib.digger", digger)
 		settings.save(".glib")
+		digger.navigator.onMove = persist
 	end
+	digger.navigator.onMove = persist
 
 	setmetatable(digger, diggerMeta)
 
