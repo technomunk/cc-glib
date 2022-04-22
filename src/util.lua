@@ -91,10 +91,27 @@ local function ask(question, default)
 	return promptYesNo(default)
 end
 
+--- Print the progress bar on the screen
+--- @param done number amount of work done
+--- @param total number|nil total amount of work to be done (or 1)
+local function printProgress(done, total)
+	total = total or 1.0
+	local color = term.getTextColor()
+	term.clearLine()
+	term.setTextColor(colors.yellow)
+	term.write(string.format("%d/%d", done, total))
+	term.setTextColor(colors.magenta)
+	term.write(string.format(" %2d%%", done / total * 100))
+	term.setTextColor(color)
+	local x, y = term.getCursorPos()
+	term.setCursorPos(1, y)
+end
+
 return {
 	first = first,
 	last = last,
 	contains = contains,
 	promptYesNo = promptYesNo,
 	ask = ask,
+	printProgress = printProgress,
 }

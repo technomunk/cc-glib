@@ -12,7 +12,7 @@ end
 
 local args = {...}
 
-local dir = args[1] or "glib"
+local dir = args[1] or "./"
 
 if dir:sub(#dir) ~= "/" then
 	dir = dir.."/"
