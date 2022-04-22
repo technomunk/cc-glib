@@ -308,12 +308,20 @@ local diggerArchetype = {
 local diggerMeta = { __index = diggerArchetype }
 
 --- Instantiate a new digger
---- @param loaded table|nil A table with digger parameters or none. Used for composition.
+--- @param digger table|nil A table with digger parameters or none. Used for composition.
 --- @return Digger New digger instance. Note that if loaded table was provided, it is returned.
-local function new(loaded)
+local function new(digger)
 	settings.load(".glib")
 	settings.unset("digger")
-	return setmetatable(loaded or {}, diggerMeta)
+	digger = setmetatable(digger or {}, diggerMeta)
+
+	digger.navigator = navigator.new(digger.navigator)
+	digger.navigator.onMove = function()
+		settings.set("glib.digger", digger)
+		settings.save(".glib")
+	end
+
+	return digger
 end
 
 --- Load the digger from settings
@@ -325,8 +333,8 @@ local function load()
 		return
 	end
 
-	digger["nav"] = navigator.new(digger["nav"])
-	digger["nav"].onMove = function()
+	digger.navigator = navigator.new(digger.navigator)
+	digger.navigator.onMove = function()
 		settings.set("glib.digger", digger)
 		settings.save(".glib")
 	end
