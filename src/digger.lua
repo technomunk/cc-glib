@@ -314,7 +314,7 @@ local diggerArchetype = {
 			self.minY, self.maxY = -self.maxY, 0
 		end
 
-		self.total = (self.sx - 1) * (self.sy - 1) * (self.sz - 1)
+		self.total = self.sx * self.sy * self.sz
 		self:findBucket()
 
 		self:returnItemsIfFullInv()
