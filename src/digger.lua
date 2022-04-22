@@ -247,6 +247,64 @@ local diggerArchetype = {
 		settings.save(".glib")
 	end,
 
+	--- Clear a horizotnal level
+	--- @param self Digger
+	--- @return boolean success
+	clearLevel = function(self)
+		if self.navigator.x % 2 == 0 then
+			self.navigator:turnTo(0, 1)
+		else
+			self.navigator:turnTo(0, -1)
+		end
+
+		local tx = self.sx - 1
+		if self.dx < 0 then tx = 0 end
+
+		for x = self.navigator.x, tx, self.dx do
+			local tz, dz = self.sz - 2, 1
+			if self.navigator.x % 2 == 1 then tz, dz = 1, -1 end
+
+			for z = self.navigator.z, tz, dz do
+				if not self:progress() then
+					return false
+				end
+			end
+
+			self:turn()
+			if x ~= tx and not self:progress() then
+				return false
+			end
+			self:turn()
+			if x ~= tx then
+				self.dx = -self.dx
+			end
+		end
+		return true
+	end,
+
+	--- Go to the next level
+	--- @param self Digger
+	--- @return boolean success
+	nextLevel = function(self)
+		if self.dy > 0 then
+			self:digOrScoopUp()
+			if not self.navigator:goUp() then
+				return false
+			end
+			if self.navigator.y < self.maxY then
+				self:digOrScoopUp()
+			end
+		else
+			self:digOrScoopDown()
+			if not self.navigator:goDown() then
+				return false
+			end
+			if self.navigator.y > self.minY then
+				self:digOrScoopDown()
+			end
+		end
+	end,
+
 	--- Begin the digging procedure. Uses class fields as arguments.
 	--- @param self Digger
 	excavate = function(self)
@@ -261,70 +319,24 @@ local diggerArchetype = {
 		self.total = (self.sx - 1) * (self.sy - 1) * (self.sz - 1)
 		self:findBucket()
 
+		self:returnItemsIfFullInv()
+
 		if self.sy > 1 then
-			if self.dy > 0 then
-				self:digOrScoopUp()
-				if not self.navigator:goUp() then
-					return self:finish("stopped early")
-				end
-				if self.navigator.y < self.maxY then
-					self:digOrScoopUp()
-				end
-			else
-				self:digOrScoopDown()
-				if not self.navigator:goDown() then
-					return self:finish("stopped early")
-				end
-				if self.navigator.y > self.minY then
-					self:digOrScoopDown()
-				end
+			if not self:nextLevel() then
+				self:finish("stopped early")
 			end
 		end
 
 		repeat
-			-- clear a level
-			for x = (self.navigator.x + 1), self.sx do
-				for z = (self.navigator.z + 2), self.sz do
-					if not self:progress() then
-						return self:finish("stopped early")
-					end
-				end
-
-				self:turn()
-				if x ~= self.sx and not self:progress() then
-					return self:finish("stopped early")
-				end
-				self:turn()
-				if x ~= self.sx then
-					self.dx = -self.dx
-				end
+			if not self:clearLevel() then
+				self:finish("sopped early")
 			end
 
 			if self.sy - math.abs(self.navigator.y) < 2 then
 				self.done = self.total
 			else
-				if self.dy > 0 then
-					if not self.navigator:goUp() then
-						return self:finish("stopped early")
-					end
-					self:digOrScoopUp()
-					if not self.navigator:goUp() then
-						return self:finish("stopped early")
-					end
-					if self.navigator.y < self.maxY then
-						self:digOrScoopUp()
-					end
-				else
-					if not self.navigator:goDown() then
-						return self:finish("stopped early")
-					end
-					self:digOrScoopDown()
-					if not self.navigator:goDown() then
-						return self:finish("stopped early")
-					end
-					if self.navigator.y < self.maxY then
-						self:digOrScoopDown()
-					end
+				if not self:nextLevel() or not self:nextLevel() then
+					self:finish("stopped early")
 				end
 			end
 		until self.done >= self.total
