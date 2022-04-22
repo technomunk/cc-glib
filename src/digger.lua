@@ -287,20 +287,18 @@ local diggerArchetype = {
 	--- @return boolean success
 	nextLevel = function(self)
 		if self.dy > 0 then
-			self:digOrScoopUp()
-			if not self.navigator:goUp() then
+			if not self:digOrScoopUp() or not self.navigator:goUp() then
 				return false
 			end
 			if self.navigator.y < self.maxY then
-				self:digOrScoopUp()
+				return self:digOrScoopUp()
 			end
 		else
-			self:digOrScoopDown()
-			if not self.navigator:goDown() then
+			if not self:digOrScoopDown() or not self.navigator:goDown() then
 				return false
 			end
 			if self.navigator.y > self.minY then
-				self:digOrScoopDown()
+				return self:digOrScoopDown()
 			end
 		end
 	end,
@@ -323,20 +321,20 @@ local diggerArchetype = {
 
 		if self.sy > 1 then
 			if not self:nextLevel() then
-				self:finish("stopped early")
+				return self:finish("stopped early")
 			end
 		end
 
 		repeat
 			if not self:clearLevel() then
-				self:finish("sopped early")
+				return self:finish("sopped early")
 			end
 
 			if self.sy - math.abs(self.navigator.y) < 2 then
 				self.done = self.total
 			else
 				if not self:nextLevel() or not self:nextLevel() then
-					self:finish("stopped early")
+					return self:finish("stopped early")
 				end
 			end
 		until self.done >= self.total
