@@ -107,6 +107,17 @@ local function printProgress(done, total)
 	term.setCursorPos(1, y)
 end
 
+--- Get both the minimal and the maximal values from the provided arguments
+--- @param x number
+--- @param ... number
+--- @return number min
+--- @return number max
+local function minmax(x, ...)
+	local min = math.min(x, arg)
+	local max = math.max(x, arg)
+	return min, max
+end
+
 return {
 	first = first,
 	last = last,
@@ -114,4 +125,5 @@ return {
 	promptYesNo = promptYesNo,
 	ask = ask,
 	printProgress = printProgress,
+	minmax = minmax,
 }

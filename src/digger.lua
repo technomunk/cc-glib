@@ -5,6 +5,14 @@ local inventory = require "inventory"
 local navigator = require "navigator"
 local util = require "util"
 
+
+--- Get the X direction of clearing of the level at provided Y coordinate
+--- @param y integer
+--- @return integer sign -1 or 1
+local function levelSignX(y)
+	return 1 - 2 * (math.floor((y + 1) / 3) % 2)
+end
+
 --- An excavator turtle upgrade
 --- Note that the cuboid excavated is always relative to navigator origin.
 --- @class Digger
@@ -21,8 +29,6 @@ local util = require "util"
 --- @field waypoint? table {x, y, z, dx, dz} navigator state to return to
 --- @field done integer number of steps completed
 --- @field total integer total number of steps
---- @field minY integer minimal achieved y level
---- @field maxY integer maximal achieved y level
 local diggerArchetype = {
 	sx = 0,
 	sy = 0,
@@ -125,11 +131,13 @@ local diggerArchetype = {
 
 	--- Turn toward the next line to excavate
 	--- @param self Digger
-	turn = function(self)
-		if self.dx == 1 then
-			self.navigator:turnRight()
+	--- @param right boolean whether to turn right
+	--- @return boolean success
+	turn = function(self, right)
+		if right then
+			return self.navigator:turnRight()
 		else
-			self.navigator:turnLeft()
+			return self.navigator:turnLeft()
 		end
 	end,
 
@@ -213,11 +221,13 @@ local diggerArchetype = {
 			return false
 		end
 
-		if self.navigator.y < self.maxY then
+		local minY, maxY = util.minmax(0, (self.sy - 1) * self.dy)
+
+		if self.navigator.y < maxY then
 			self:digOrScoopUp()
 			self.done = self.done + 1
 		end
-		if self.navigator.y > self.minY then
+		if self.navigator.y > minY then
 			self:digOrScoopDown()
 			self.done = self.done + 1
 		end
@@ -247,7 +257,22 @@ local diggerArchetype = {
 		settings.save(".glib")
 	end,
 
-	--- Clear a horizotnal level
+	--- Clear a Z line that the turtle faces
+	--- @param self Digger
+	--- @return boolean success
+	clearLine = function(self)
+		assert(self.navigator.dz == -1 or self.navigator.dz == 1)
+		local targetZ = math.max(0, (self.sz - 1) * self.navigator.dz)
+		for _ = 0, math.abs(targetZ - self.navigator.z) do
+			if not self:progress() then
+				return false
+			end
+		end
+		return true
+	end,
+
+	--- Clear a horizotnal level by digging out lines along Z axis
+	--- Assumes the leve up to Digger's current position has been cleared
 	--- @param self Digger
 	--- @return boolean success
 	clearLevel = function(self)
@@ -257,27 +282,27 @@ local diggerArchetype = {
 			self.navigator:turnTo(0, -1)
 		end
 
-		local tx = self.sx - 1
-		if self.dx < 0 then tx = 0 end
+		local xSign = levelSignX(self.navigator.y)
+		local targetX = math.max(0, (self.sx - 1) * xSign * self.dx)
+		local rowSign = 1 - 2 * (self.navigator % 2)
+		local rightTurn = (xSign * self.dx * rowSign) == 1
 
-		for x = self.navigator.x, tx, self.dx do
-			local tz, dz = self.sz - 2, 1
-			if self.navigator.x % 2 == 1 then tz, dz = 1, -1 end
-
-			for z = self.navigator.z, tz, dz do
-				if not self:progress() then
-					return false
-				end
-			end
-
-			self:turn()
-			if x ~= tx and not self:progress() then
+		for _ = 0, math.abs(targetX - self.navigator.x) do
+			if not self:clearLine() then
 				return false
 			end
-			self:turn()
-			if x ~= tx then
-				self.dx = -self.dx
+
+			-- exit early to avoid unnecessary dancing
+			if self.navigator.x == targetX then
+				return true
 			end
+
+			self:turn(rightTurn)
+			if not self:progress() then
+				return false
+			end
+			self:turn(rightTurn)
+			rightTurn = not rightTurn
 		end
 		return true
 	end,
@@ -286,18 +311,19 @@ local diggerArchetype = {
 	--- @param self Digger
 	--- @return boolean success
 	nextLevel = function(self)
+		local minY, maxY = util.minmax(0, (self.sy - 1) * self.dy)
 		if self.dy > 0 then
 			if not self:digOrScoopUp() or not self.navigator:goUp() then
 				return false
 			end
-			if self.navigator.y < self.maxY then
+			if self.navigator.y < maxY then
 				return self:digOrScoopUp()
 			end
 		else
 			if not self:digOrScoopDown() or not self.navigator:goDown() then
 				return false
 			end
-			if self.navigator.y > self.minY then
+			if self.navigator.y > minY then
 				return self:digOrScoopDown()
 			end
 		end
@@ -307,12 +333,6 @@ local diggerArchetype = {
 	--- @param self Digger
 	excavate = function(self)
 		assert(self.sx > 0 and self.sy > 0 and self.sz > 0, "size to dig must be positive!")
-		assert(self.dx == -1 or self.dx == 1, "dx must be 1 or -1")
-
-		self.minY, self.maxY = 0, (self.sy - 1)
-		if self.dy < 0 then
-			self.minY, self.maxY = -self.maxY, 0
-		end
 
 		self.total = self.sx * self.sy * self.sz
 		self:findBucket()
@@ -321,20 +341,20 @@ local diggerArchetype = {
 
 		if self.navigator:atOrigin() and self.sy > 1 then
 			if not self:nextLevel() then
-				return self:finish("stopped early")
+				return self:finish("stopped early: setup height")
 			end
 		end
 
 		repeat
 			if not self:clearLevel() then
-				return self:finish("stopped early")
+				return self:finish("stopped early: clearLevel")
 			end
 
 			if self.sy - math.abs(self.navigator.y) < 2 then
 				self.done = self.total
 			else
 				if not self:nextLevel() or not self:nextLevel() then
-					return self:finish("stopped early")
+					return self:finish("sopped early: nextLevel")
 				end
 			end
 		until self.done >= self.total
