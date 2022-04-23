@@ -357,6 +357,8 @@ local diggerArchetype = {
 				end
 			end
 		until self.done >= self.total
+
+		self:finish()
 	end,
 }
 
