@@ -200,6 +200,13 @@ local navigatorArchetype = {
 
 		return true
 	end,
+
+	--- Check whether the navigator is at 0, 0, 0
+	--- @param self Navigator
+	--- @return boolean atOrigin
+	atOrigin = function(self)
+		return self.x == 0 and self.y == 0 and self.z == 0
+	end,
 }
 
 local navigatorMeta = {

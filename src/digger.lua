@@ -319,7 +319,7 @@ local diggerArchetype = {
 
 		self:returnItemsIfFullInv()
 
-		if self.sy > 1 then
+		if self.navigator:atOrigin() and self.sy > 1 then
 			if not self:nextLevel() then
 				return self:finish("stopped early")
 			end
@@ -327,7 +327,7 @@ local diggerArchetype = {
 
 		repeat
 			if not self:clearLevel() then
-				return self:finish("sopped early")
+				return self:finish("stopped early")
 			end
 
 			if self.sy - math.abs(self.navigator.y) < 2 then
