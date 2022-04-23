@@ -113,8 +113,8 @@ end
 --- @return number min
 --- @return number max
 local function minmax(x, ...)
-	local min = math.min(x, arg)
-	local max = math.max(x, arg)
+	local min = math.min(x, unpack(arg))
+	local max = math.max(x, unpack(arg))
 	return min, max
 end
 
