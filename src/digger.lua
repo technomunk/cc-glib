@@ -263,7 +263,7 @@ local diggerArchetype = {
 	clearLine = function(self)
 		assert(self.navigator.dz == -1 or self.navigator.dz == 1)
 		local targetZ = math.max(0, (self.sz - 1) * self.navigator.dz)
-		for _ = 0, math.abs(targetZ - self.navigator.z) do
+		for _ = 1, math.abs(targetZ - self.navigator.z) do
 			if not self:progress() then
 				return false
 			end
@@ -287,7 +287,7 @@ local diggerArchetype = {
 		local rowSign = 1 - 2 * (self.navigator.x % 2)
 		local rightTurn = (xSign * self.dx * rowSign) == 1
 
-		for _ = 0, math.abs(targetX - self.navigator.x) do
+		for _ = 1, math.abs(targetX - self.navigator.x) do
 			if not self:clearLine() then
 				return false
 			end
