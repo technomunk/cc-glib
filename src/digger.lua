@@ -218,7 +218,7 @@ local diggerArchetype = {
 			self.done = self.done + 1
 		end
 		if self.navigator.y > self.minY then
-			self.digOrScoopDown()
+			self:digOrScoopDown()
 			self.done = self.done + 1
 		end
 
