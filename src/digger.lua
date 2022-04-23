@@ -104,7 +104,7 @@ local diggerArchetype = {
 		if self.navigator.y > 0 and turtle.detectDown() then
 			assert(turtle.digDown(), "failed to make path home")
 			self.dug = self.dug + 1
-		elseif self.nav.y < 0 then
+		elseif self.navigator.y < 0 then
 			assert(turtle.digUp(), "failed to make path home")
 			self.dug = self.dug + 1
 		end
@@ -287,7 +287,7 @@ local diggerArchetype = {
 		local rowSign = 1 - 2 * (self.navigator.x % 2)
 		local rightTurn = (xSign * self.dx * rowSign) == 1
 
-		for _ = 1, math.abs(targetX - self.navigator.x) do
+		for _ = 0, math.abs(targetX - self.navigator.x) do
 			if not self:clearLine() then
 				return false
 			end
