@@ -284,7 +284,7 @@ local diggerArchetype = {
 
 		local xSign = levelSignX(self.navigator.y)
 		local targetX = math.max(0, (self.sx - 1) * xSign * self.dx)
-		local rowSign = 1 - 2 * (self.navigator % 2)
+		local rowSign = 1 - 2 * (self.navigator.x % 2)
 		local rightTurn = (xSign * self.dx * rowSign) == 1
 
 		for _ = 0, math.abs(targetX - self.navigator.x) do
@@ -313,16 +313,14 @@ local diggerArchetype = {
 	nextLevel = function(self)
 		local minY, maxY = util.minmax(0, (self.sy - 1) * self.dy)
 		if self.dy > 0 then
-			if not self:digOrScoopUp() or not self.navigator:goUp() then
-				return false
-			end
+			if not self:digOrScoopUp() then return false end
+			if not self.navigator:goUp() then return false end
 			if self.navigator.y < maxY then
 				return self:digOrScoopUp()
 			end
 		else
-			if not self:digOrScoopDown() or not self.navigator:goDown() then
-				return false
-			end
+			if not self:digOrScoopDown() then return false end
+			if not self.navigator:goDown() then return false end
 			if self.navigator.y > minY then
 				return self:digOrScoopDown()
 			end
