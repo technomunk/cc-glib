@@ -325,6 +325,7 @@ local diggerArchetype = {
 				return self:digOrScoopDown()
 			end
 		end
+		return true
 	end,
 
 	--- Begin the digging procedure. Uses class fields as arguments.
