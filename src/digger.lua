@@ -349,7 +349,7 @@ local diggerArchetype = {
 				return self:finish("stopped early: clearLevel")
 			end
 
-			if self.sy - math.abs(self.navigator.y) < 2 then
+			if self.sy - math.abs(self.navigator.y) <= 2 then
 				self.done = self.total
 			else
 				if not self:nextLevel() or not self:nextLevel() then
