@@ -76,7 +76,7 @@ local diggerArchetype = {
 			"Must be at origin to find storage!"
 		)
 		self.navigator:turnTo(0, -1)
-		self.store = block.isChest(turtle.inspect())
+		self.store = block.isStorage(turtle.inspect())
 		self.navigator:turnTo(0, 1)
 		return self.store
 	end,
