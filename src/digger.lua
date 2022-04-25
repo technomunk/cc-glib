@@ -23,7 +23,7 @@ end
 --- @field dy integer 1|-1 the overall vertical direction to dig
 --- @field bucketSlot? integer the slot with the bucket if it is in the inventory
 --- @field navigator Navigator the navigation class to use
---- @field chest boolean whether deposit items to a chest
+--- @field store boolean whether deposit items into storage
 --- @field dug integer number of blocks dug
 --- @field scooped integer number of buckets of lava scooped for fuel
 --- @field waypoint? table {x, y, z, dx, dz} navigator state to return to
@@ -37,7 +37,7 @@ local diggerArchetype = {
 	dx = 1,
 	dy = 1,
 
-	chest = false,
+	store = false,
 	dug = 0,
 	scooped = 0,
 
@@ -57,25 +57,25 @@ local diggerArchetype = {
 
 	--- Look for an inventory to deposit items to
 	--- @param self Digger
-	--- @return boolean exists whether the chest exists
-	findChest = function(self)
+	--- @return boolean exists whether the storage exists
+	findStorage = function(self)
 		assert(
 			self.navigator.x == 0
 			and self.navigator.y == 0
 			and self.navigator.z == 0
 			and self.navigator.dx == 0
 			and self.navigator.dz == 1,
-			"Must be at origin to find chest!"
+			"Must be at origin to find storage!"
 		)
 		self.navigator:turnTo(0, -1)
-		self.chest = block.isChest(turtle.inspect())
+		self.store = block.isChest(turtle.inspect())
 		self.navigator:turnTo(0, 1)
-		return self.chest
+		return self.store
 	end,
 
-	--- Dump the inventory into the chest in front of the digger
+	--- Dump the inventory into the storage in front of the digger
 	dumpInventory = function(self)
-		if self.chest then
+		if self.store then
 			for i = 1, 16 do
 				if i ~= self.bucketSlot then
 					turtle.select(i)
@@ -88,7 +88,7 @@ local diggerArchetype = {
 		end
 	end,
 
-	--- Go to the home base and depost items into the chest.
+	--- Go to the home base and depost items into the storage.
 	--- @param self Digger
 	returnItems = function(self)
 		if not self.waypoint then
@@ -121,10 +121,10 @@ local diggerArchetype = {
 		self.waypoint = nil
 	end,
 
-	--- Go to the chest and deposit items if the inventory is full
+	--- Go to the storage and deposit items if the inventory is full
 	--- @param self Digger
 	returnItemsIfFullInv = function(self)
-		if self.chest and inventory.isFull() then
+		if self.store and inventory.isFull() then
 			self:returnItems()
 		end
 	end,

@@ -8,10 +8,9 @@ local function isLava(exists, block)
 	return exists and block.name == "minecraft:lava" and block.state.level == 0
 end
 
--- Check if the inspected block is a chest
-local function isChest(exists, block)
-	block = block or exists
-	return exists and (block.tags["forge:chests"] or block.name:find("chest"))
+-- Check if the inspected block is an inventory
+local function isStorage(exists, block)
+	return exists and (block.name:find("chest") or block.name:find("barrel"))
 end
 
 local fallingBlocks = {
@@ -27,6 +26,6 @@ end
 
 return {
 	isLava = isLava,
-	isChest = isChest,
+	isStorage = isStorage,
 	falls = falls,
 }

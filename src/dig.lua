@@ -55,7 +55,7 @@ else
 
 	assert(dig.sx > 0 and dig.sy > 0 and dig.sz > 0, "size must be positive")
 	assert(dig:findBucket() or util.ask("A bucket is recommended, continue without?", true), "operation aborted")
-	assert(dig:findChest() or util.ask("Chest not found, continue anyway?", true), "operation aborted")
+	assert(dig:findStorage() or util.ask("Chest not found, continue anyway?", true), "operation aborted")
 
 	assert(util.ask(string.format("Excavate %dx%dx%d area? (%d blocks)?", dig.sx, dig.sy, dig.sz, dig.sx * dig.sy * dig.sz), true), "operation aborted")
 end
