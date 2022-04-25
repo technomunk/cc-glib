@@ -276,16 +276,12 @@ local diggerArchetype = {
 	--- @param self Digger
 	--- @return boolean success
 	clearLevel = function(self)
-		if self.navigator.x % 2 == 0 then
-			self.navigator:turnTo(0, 1)
-		else
-			self.navigator:turnTo(0, -1)
-		end
-
 		local xSign = levelSignX(self.navigator.y)
 		local targetX = math.max(0, (self.sx - 1) * xSign * self.dx)
 		local rowSign = 1 - 2 * (self.navigator.x % 2)
 		local rightTurn = (xSign * self.dx * rowSign) == 1
+
+		self.navigator:turnTo(0, xSign * rowSign * self.dx)
 
 		for _ = 0, math.abs(targetX - self.navigator.x) do
 			if not self:clearLine() then
@@ -352,8 +348,11 @@ local diggerArchetype = {
 			if self.sy - math.abs(self.navigator.y) <= 2 then
 				self.done = self.total
 			else
-				if not self:nextLevel() or not self:nextLevel() then
-					return self:finish("sopped early: nextLevel")
+				local yDelta = math.min(3, (self.sy - 1) - math.abs(self.navigator.y))
+				for _ = 1, yDelta do
+					if not self:nextLevel() then
+						return self:finish("stopped early: nextLevel")
+					end
 				end
 			end
 		until self.done >= self.total
