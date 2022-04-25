@@ -1,4 +1,4 @@
---- A digger class that can persistently excavate an area through redstone
+--- A digger class that can persistently excavate an area through unloading
 
 local block = require "block"
 local inventory = require "inventory"
