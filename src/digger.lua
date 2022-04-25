@@ -6,10 +6,10 @@ local navigator = require "navigator"
 local util = require "util"
 
 
---- Get the Z direction of clearing of the level at provided Y coordinate
+--- Get the X direction of clearing of the level at provided Y coordinate
 --- @param y integer
 --- @return integer sign -1 or 1
-local function levelSignZ(y)
+local function levelSignX(y)
 	return 1 - 2 * (math.floor(math.abs(y) / 3) % 2)
 end
 
@@ -284,7 +284,7 @@ local diggerArchetype = {
 	--- @param self Digger
 	--- @return boolean success
 	clearLevel = function(self)
-		local xSign = levelSignZ(self.navigator.y)
+		local xSign = levelSignX(self.navigator.y)
 		local rowSign = 1 - 2 * (self.navigator.x % 2)
 
 		local targetX = math.max(0, (self.sx - 1) * xSign * self.dx)
