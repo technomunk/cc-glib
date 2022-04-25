@@ -6,11 +6,19 @@ local navigator = require "navigator"
 local util = require "util"
 
 
---- Get the X direction of clearing of the level at provided Y coordinate
+--- Get the Z direction of clearing of the level at provided Y coordinate
 --- @param y integer
 --- @return integer sign -1 or 1
-local function levelSignX(y)
+local function levelSignZ(y)
 	return 1 - 2 * (math.floor(math.abs(y) / 3) % 2)
+end
+
+local function failIf(condition, message)
+	if condition then
+		settings.unset("digger")
+		settings.save(".glib")
+	end
+	assert(not condition, message)
 end
 
 --- An excavator turtle upgrade
@@ -59,12 +67,12 @@ local diggerArchetype = {
 	--- @param self Digger
 	--- @return boolean exists whether the storage exists
 	findStorage = function(self)
-		assert(
-			self.navigator.x == 0
-			and self.navigator.y == 0
-			and self.navigator.z == 0
-			and self.navigator.dx == 0
-			and self.navigator.dz == 1,
+		failIf(
+			self.navigator.x ~= 0
+			or self.navigator.y ~= 0
+			or self.navigator.z ~= 0
+			or self.navigator.dx ~= 0
+			or self.navigator.dz ~= 1,
 			"Must be at origin to find storage!"
 		)
 		self.navigator:turnTo(0, -1)
@@ -102,21 +110,21 @@ local diggerArchetype = {
 		end
 
 		if self.navigator.y > 0 and turtle.detectDown() then
-			assert(turtle.digDown(), "failed to make path home")
+			failIf(not turtle.digDown(), "failed to make path home")
 			self.dug = self.dug + 1
 		elseif self.navigator.y < 0 then
-			assert(turtle.digUp(), "failed to make path home")
+			failIf(not turtle.digUp(), "failed to make path home")
 			self.dug = self.dug + 1
 		end
 
-		assert(self.navigator:goTo(0, 0, 0), "failed to return home")
+		failIf(not self.navigator:goTo(0, 0, 0), "failed to return home")
 		self.navigator:turnTo(0, -1)
 
 		self:dumpInventory()
 
-		assert(self.navigator:goTo(0, 0, self.waypoint.z), "failed to return to digging")
-		assert(self.navigator:goTo(self.waypoint.x, 0, self.waypoint.z), "failed to return to digging")
-		assert(self.navigator:goTo(self.waypoint), "failed to return to digging")
+		failIf(not self.navigator:goTo(0, 0, self.waypoint.z), "failed to return to digging")
+		failIf(not self.navigator:goTo(self.waypoint.x, 0, self.waypoint.z), "failed to return to digging")
+		failIf(not self.navigator:goTo(self.waypoint), "failed to return to digging")
 		self.navigator:turnTo(self.waypoint)
 		self.waypoint = nil
 	end,
@@ -240,7 +248,7 @@ local diggerArchetype = {
 	--- @param self Digger
 	--- @param message? string the message to print after returning home
 	finish = function(self, message)
-		assert(self.navigator:goTo(0, 0, 0), "failed to return home")
+		failIf(not self.navigator:goTo(0, 0, 0), "failed to return home")
 		self.navigator:turnTo(0, -1)
 		self:dumpInventory()
 		print("Done mining.")
@@ -261,7 +269,7 @@ local diggerArchetype = {
 	--- @param self Digger
 	--- @return boolean success
 	clearLine = function(self)
-		assert(self.navigator.dz == -1 or self.navigator.dz == 1)
+		failIf(self.navigator.dz ~= -1 and self.navigator.dz ~= 1)
 		local targetZ = math.max(0, (self.sz - 1) * self.navigator.dz)
 		for _ = 1, math.abs(targetZ - self.navigator.z) do
 			if not self:progress() then
@@ -276,10 +284,11 @@ local diggerArchetype = {
 	--- @param self Digger
 	--- @return boolean success
 	clearLevel = function(self)
-		local xSign = levelSignX(self.navigator.y)
-		local targetX = math.max(0, (self.sx - 1) * xSign * self.dx)
+		local xSign = levelSignZ(self.navigator.y)
 		local rowSign = 1 - 2 * (self.navigator.x % 2)
-		local rightTurn = (xSign * self.dx * rowSign) == 1
+
+		local targetX = math.max(0, (self.sx - 1) * xSign * self.dx)
+		local rightTurn = (rowSign * self.dx) == 1
 
 		self.navigator:turnTo(0, xSign * rowSign * self.dx)
 
