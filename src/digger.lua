@@ -10,7 +10,7 @@ local util = require "util"
 --- @param y integer
 --- @return integer sign -1 or 1
 local function levelSignX(y)
-	return 1 - 2 * (math.floor((y + 1) / 3) % 2)
+	return 1 - 2 * (math.floor(math.abs(y) / 3) % 2)
 end
 
 --- An excavator turtle upgrade
