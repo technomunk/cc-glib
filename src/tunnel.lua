@@ -9,7 +9,7 @@ assert(info.name == "minecraft:chest", "need a chest to deposit into")
 nav = nav.new()
 
 local function dumpItems()
-    for slot in 1,16 do
+    for slot = 1,16 do
         if slot ~= bucketSlot then
             turtle.select(slot)
             assert(turtle.dropDown(), "Chest is full!")

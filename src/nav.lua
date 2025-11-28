@@ -67,7 +67,7 @@ end
 --- @return boolean success whether the navigation was successful
 function Nav:forth(steps)
     steps = steps or 1
-    for _ in 1, math.abs(steps) do
+    for _ = 1, math.abs(steps) do
         if steps > 0 then
             if not self:moveForth() then
                 return false
@@ -91,7 +91,7 @@ end
 --- @return boolean success whether the navigation was successful
 function Nav:up(steps)
     steps = steps or 1
-    for _ in 1, math.abs(steps) do
+    for _ = 1, math.abs(steps) do
         if steps > 0 then
             if not self:moveUp() then
                 return false
