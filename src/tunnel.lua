@@ -4,24 +4,42 @@ local inv = require("inventory")
 local bucketSlot = assert(inv.find("minecraft:bucket"), "missing a bucket to refuel with")
 local detected, info = turtle.inspectDown()
 
+local chat = peripheral.find("chatBox")
+local name = os.getComputerLabel()
+
 assert(detected and info.name == "minecraft:chest", "need a chest to deposit into")
 
 nav = nav.new()
 
+local function inform(message)
+    if chat then
+        chat.sendMessage(message, name, "<>")
+    else
+        print(message)
+    end
+end
+
+local function informAndStopOnFail(condition, message)
+    if not condition then
+        inform("error: " .. message)
+    end
+    os.exit(false)
+end
+
 local function dumpItems()
-    for slot = 1,16 do
+    for slot = 1, 16 do
         if slot ~= bucketSlot and turtle.getItemCount(slot) ~= 0 then
             turtle.select(slot)
-            assert(turtle.dropDown(), "Chest is full!")
+            informAndStopOnFail(turtle.dropDown(), "chest is full!")
         end
     end
 end
 
 local function returnToDump()
     local x, y, z = nav.x, nav.y, nav.z
-    assert(nav:goTo(0, 0, 0), "failed to return home!")
+    informAndStopOnFail(nav:goTo(0, 0, 0), "failed to return home!")
     dumpItems()
-    assert(nav:goTo(x, y, z), "failed to return to the tunnel")
+    informAndStopOnFail(nav:goTo(x, y, z), "failed to return to the tunnel")
 end
 
 --- @param dir -1|0|1 the direction to dig or scoop in
@@ -44,7 +62,10 @@ local function digOrScoop(dir)
         else
             dig()
             if info.name == "minecraft:gravel" or info.name == "minecraft:sand" then
-                while dig() do end
+                repeat
+                    sleep(0.2)
+                    dig()
+                until not inspect()
             end
         end
     end
@@ -59,13 +80,16 @@ end
 local function step()
     digOrScoop(0)
     ensureInventorySpace()
-    assert(nav:forth())
+    informAndStopOnFail(nav:forth(), "bumped into something")
     digOrScoop(-1)
     ensureInventorySpace()
     digOrScoop(1)
     ensureInventorySpace()
 end
 
-for _ = 1,256 do
+for _ = 1, 256 do
     step()
 end
+informAndStopOnFail(nav:goTo(0, 0, 0), "Couldn't return home")
+dumpItems()
+inform("Done digging!")
