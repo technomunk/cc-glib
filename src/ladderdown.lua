@@ -29,10 +29,10 @@ local function placeWall()
         turtle.refuel()
     end
 
+    ensureHaveItems()
     turtle.select(curSlot)
     if turtle.place() then
         curSlotItems = curSlotItems - 1
-        ensureHaveItems()
     end
 end
 
@@ -60,6 +60,10 @@ local cur_y = read()
 for _ = cur_y, 16, -1 do
     step()
 end
+
+ensureHaveItems()
+turtle.select(curSlot)
+turtle.placeDown()
 
 for _ = 16,cur_y do
     turtle.up()
