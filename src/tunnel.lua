@@ -43,6 +43,9 @@ local function digOrScoop(dir)
             turtle.refuel()
         else
             dig()
+            if info.name == "minecraft:gravel" or info.name == "minecraft:sand" then
+                while dig() do end
+            end
         end
     end
 end

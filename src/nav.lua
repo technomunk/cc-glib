@@ -30,8 +30,9 @@ function Nav:moveForth()
         self.x = self.x + self.dx
         self.z = self.z + self.dz
         self:onUpdate()
-        return false
+        return true
     end
+    return false
 end
 
 function Nav:moveBack()
