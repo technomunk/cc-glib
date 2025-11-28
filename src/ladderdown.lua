@@ -50,6 +50,8 @@ local function step()
         turtle.placeDown()
         turtle.refuel()
     end
+    assert(turtle.down())
+    placeWallsAllAround()
 end
 
 write("current y:")
