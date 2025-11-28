@@ -10,7 +10,7 @@ nav = nav.new()
 
 local function dumpItems()
     for slot = 1,16 do
-        if slot ~= bucketSlot then
+        if slot ~= bucketSlot and turtle.getItemCount(slot) ~= 0 then
             turtle.select(slot)
             assert(turtle.dropDown(), "Chest is full!")
         end
@@ -48,7 +48,7 @@ local function digOrScoop(dir)
 end
 
 local function ensureInventorySpace()
-    if turtle.getItemCount(16) ~= 64 then
+    if turtle.getItemSpace(16) ~= 64 then
         returnToDump()
     end
 end

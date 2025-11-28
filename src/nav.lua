@@ -219,7 +219,7 @@ local NavMeta = {
 --- @param o? Navigator
 --- @return Navigator
 local function new(o)
-    return setmetatable(o or {}, Nav)
+    return setmetatable(o or {}, NavMeta)
 end
 
 return {
