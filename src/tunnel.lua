@@ -19,27 +19,28 @@ local function inform(message)
     end
 end
 
-local function informAndStopOnFail(condition, message)
+local function assertOrInformOfError(condition, message)
     if not condition then
         inform("error: " .. message)
+        error(message)
     end
-    os.exit(false)
+    return false
 end
 
 local function dumpItems()
     for slot = 1, 16 do
         if slot ~= bucketSlot and turtle.getItemCount(slot) ~= 0 then
             turtle.select(slot)
-            informAndStopOnFail(turtle.dropDown(), "chest is full!")
+            assertOrInformOfError(turtle.dropDown(), "chest is full!")
         end
     end
 end
 
 local function returnToDump()
     local x, y, z = nav.x, nav.y, nav.z
-    informAndStopOnFail(nav:goTo(0, 0, 0), "failed to return home!")
+    assertOrInformOfError(nav:goTo(0, 0, 0), "failed to return home!")
     dumpItems()
-    informAndStopOnFail(nav:goTo(x, y, z), "failed to return to the tunnel")
+    assertOrInformOfError(nav:goTo(x, y, z), "failed to return to the tunnel")
 end
 
 --- @param dir -1|0|1 the direction to dig or scoop in
@@ -80,7 +81,7 @@ end
 local function step()
     digOrScoop(0)
     ensureInventorySpace()
-    informAndStopOnFail(nav:forth(), "bumped into something")
+    assertOrInformOfError(nav:forth(), "bumped into something")
     digOrScoop(-1)
     ensureInventorySpace()
     digOrScoop(1)
@@ -90,6 +91,6 @@ end
 for _ = 1, 256 do
     step()
 end
-informAndStopOnFail(nav:goTo(0, 0, 0), "Couldn't return home")
+assertOrInformOfError(nav:goTo(0, 0, 0), "Couldn't return home")
 dumpItems()
 inform("Done digging!")
