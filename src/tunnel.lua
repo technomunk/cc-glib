@@ -4,7 +4,7 @@ local inv = require("inventory")
 local bucketSlot = assert(inv.find("minecraft:bucket"), "missing a bucket to refuel with")
 local detected, info = turtle.inspectDown()
 
-assert(info.name == "minecraft:chest", "need a chest to deposit into")
+assert(detected and info.name == "minecraft:chest", "need a chest to deposit into")
 
 nav = nav.new()
 
@@ -36,12 +36,14 @@ local function digOrScoop(dir)
     end
 
     detected, info = inspect()
-    if info.name == "minecraft:lava" then
-        turtle.select(bucketSlot)
-        place()
-        turtle.refuel()
-    elseif detected then
-        dig()
+    if detected then
+        if info.name == "minecraft:lava" then
+            turtle.select(bucketSlot)
+            place()
+            turtle.refuel()
+        else
+            dig()
+        end
     end
 end
 
@@ -61,6 +63,6 @@ local function step()
     ensureInventorySpace()
 end
 
-for _ in 1,256 do
+for _ = 1,256 do
     step()
 end
