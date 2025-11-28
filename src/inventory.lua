@@ -6,7 +6,7 @@
 local function find(name)
     for slot = 1,16 do
         local info = turtle.getItemDetail(slot)
-        if info.name == name then
+        if info and info.name == name then
             return slot
         end
     end
