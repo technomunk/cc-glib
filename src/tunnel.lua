@@ -1,47 +1,40 @@
 local nav = require("nav")
 local inv = require("inventory")
 local block = require("block")
+local prompt = require("prompt")
+local chat = require("chat")
 
-local bucketSlot = assert(inv.find("minecraft:bucket"), "missing a bucket to refuel with")
+local bucketSlot = inv.find("minecraft:bucket")
+local torchSlot = inv.find("minecraft:torch")
 local detected, info = turtle.inspectDown()
 
-local chat = peripheral.find("chatBox")
-local name = os.getComputerLabel()
+local chestPresent = detected and info.name == "minecraft:chest"
 
-assert(detected and info.name == "minecraft:chest", "need a chest to deposit into")
+chat.errorIfNot(chestPresent or prompt.confirm("Continue without chest?"))
+chat.errorIfNot(bucketSlot or prompt.confirm("Continue without a bucket?"))
+chat.errorIfNot(torchSlot or prompt.confirm("Continue without torches?"))
+
+local torchCount = 0
+if torchSlot then
+    torchCount = turtle.getItemCount(torchSlot)
+end
 
 nav = nav.new()
-
-local function inform(message)
-    if chat then
-        chat.sendMessage(message, name, "<>")
-    else
-        print(message)
-    end
-end
-
-local function assertOrInformOfError(condition, message)
-    if not condition then
-        inform("error: " .. message)
-        error(message)
-    end
-    return false
-end
 
 local function dumpItems()
     for slot = 1, 16 do
         if slot ~= bucketSlot and turtle.getItemCount(slot) ~= 0 then
             turtle.select(slot)
-            assertOrInformOfError(turtle.dropDown(), "chest is full!")
+            chat.errorIfNot(turtle.dropDown(), "chest is full!")
         end
     end
 end
 
 local function returnToDump()
     local x, y, z = nav.x, nav.y, nav.z
-    assertOrInformOfError(nav:goTo(0, 0, 0), "failed to return home!")
+    chat.errorIfNot(nav:goTo(0, 0, 0), "failed to return home!")
     dumpItems()
-    assertOrInformOfError(nav:goTo(x, y, z), "failed to return to the tunnel")
+    chat.errorIfNot(nav:goTo(x, y, z), "failed to return to the tunnel")
 end
 
 --- @param dir -1|0|1 the direction to dig or scoop in
@@ -66,6 +59,7 @@ local function digOrScoop(dir)
             if block.isAffectedByGravity(info) then
                 repeat
                     dig()
+                    sleep(0.1)
                 until not inspect()
             end
         end
@@ -81,16 +75,31 @@ end
 local function step()
     digOrScoop(0)
     ensureInventorySpace()
-    assertOrInformOfError(nav:forth(), "bumped into something")
+    chat.errorIfNot(nav:forth(), "bumped into something")
     digOrScoop(-1)
     ensureInventorySpace()
     digOrScoop(1)
     ensureInventorySpace()
 end
 
-for _ = 1, 256 do
+local s = 0
+while true do
     step()
+    s = s + 1
+    if s % 10 == 0 then
+        turtle.select(torchSlot)
+        if turtle.placeDown() then
+            torchCount = torchCount - 1
+        end
+        if torchCount == 0 then
+            break
+        end
+    end
+    if s % 100 == 0 then
+        chat.inform("Dug "..s.." blocks!")
+    end
 end
-assertOrInformOfError(nav:goTo(0, 0, 0), "Couldn't return home")
+
+chat.errorIfNot(nav:goTo(0, 0, 0), "Couldn't return home")
 dumpItems()
-inform("Done digging!")
+chat.inform("Done digging!")
