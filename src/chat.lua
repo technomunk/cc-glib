@@ -1,11 +1,26 @@
-local chat = peripheral.find("chatBox")
 local name = os.getComputerLabel()
+local chat = peripheral.find("chatBox")
+
+if not chat then
+    for slot = 1,16 do
+        local detail = turtle.getItemDetail(slot)
+        if detail and detail.name == "advancedperipherals:chat_box" then
+            chat = slot
+            break
+        end
+    end
+end
 
 --- Inform the user about something
 --- @param message string
 local function inform(message)
-    if chat then
+    if type(chat) == "table" then
         chat.sendMessage(message, name, "<>")
+    elseif type(chat) == "number" then
+        turtle.select(chat)
+        turtle.equipRight()
+        peripheral.wrap("right").sendMessage(message, name, "<>")
+        turtle.equipRight()
     else
         print(message)
     end
