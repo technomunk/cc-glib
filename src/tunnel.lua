@@ -37,6 +37,8 @@ local function returnToDump()
     chat.errorIfNot(nav:goTo(x, y, z), "failed to return to the tunnel")
 end
 
+local cooldown = 0
+
 --- @param dir -1|0|1 the direction to dig or scoop in
 local function digOrScoop(dir)
     local inspect, dig, place
@@ -56,8 +58,12 @@ local function digOrScoop(dir)
                 place()
                 turtle.refuel()
             end
+        elseif cooldown <= 0 and string.find(info.name, "ore") then
+            chat.inform("Hit "..info.name)
+            cooldown = 10
         else
             dig()
+            cooldown = cooldown - 1
             if block.isAffectedByGravity(info) then
                 repeat
                     dig()
