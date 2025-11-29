@@ -224,6 +224,23 @@ function Nav:goTo(x, y, z)
     return true
 end
 
+--- Is the navigator at given coordinates
+---@param x number
+---@param y number
+---@param z number
+---@return boolean
+---@overload fun(self: Navigator, pos: Point3): boolean
+---@overload fun(self: Navigator, loc: Loc): boolean
+function Nav:isAt(x, y, z)
+    local dx, dz
+    if type(x) == "table" then
+        x, y, z, dx, dz = x.x, x.y, x.z, x.dx, x.dz
+    end
+    local atRightPos = x == self.x and y == self.y and z == self.z
+    local atRightDir = dz == nil or (dx == self.dx and dz == self.dz)
+    return atRightPos and atRightDir
+end
+
 --- Get the current checkpoint
 --- @return Loc
 function Nav:checkpoint()
