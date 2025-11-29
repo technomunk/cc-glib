@@ -55,11 +55,11 @@ end
 local function tryScoop(dir)
     local place, inspect
     if dir == -1 then
-        place, inspect = turtle.placeDown(), turtle.inspectDown()
+        place, inspect = turtle.placeDown, turtle.inspectDown
     elseif dir == 0 then
-        place, inspect = turtle.place(), turtle.inspect()
+        place, inspect = turtle.place, turtle.inspect
     else
-        place, inspect = turtle.placeUp(), turtle.inspectUp()
+        place, inspect = turtle.placeUp, turtle.inspectUp
     end
 
     local detected, info = inspect()
@@ -73,13 +73,13 @@ local function tryScoop(dir)
 end
 
 local function digOrScoop(dir)
-    local dig, place, inspect
+    local dig
     if dir == -1 then
-        dig = turtle.digDown()
+        dig = turtle.digDown
     elseif dir == 0 then
-        dig = turtle.dig()
+        dig = turtle.dig
     else
-        dig = turtle.digUp()
+        dig = turtle.digUp
     end
 
     if quarry.bucketSlot and not tryScoop(dir) then
@@ -115,7 +115,7 @@ local function digLayer(dx)
         if not digLine() then
             return false
         end
-        local nextX = quarry.x + dx
+        local nextX = x + dx
         if nextX == 0 or nextX ~= quarry.tx - 1 then
             return true
         end
@@ -129,9 +129,16 @@ local function digLayer(dx)
     return true
 end
 
+turtle.digDown()
+quarry:down()
+
 local dx = 1
 while digLayer(dx) do
     dx = -dx
+    for _ = 1, 2 do
+        digOrScoop(-1)
+        quarry:down()
+    end
 end
 
 quarry:goTo(0, 0, 0)
