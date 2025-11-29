@@ -91,13 +91,17 @@ local function digOrScoop(dir)
 end
 
 local function digLine()
-    for z = quarry.z, quarry.tz - 1, quarry.dz do
+    local target
+    if quarry.dz == 1 then
+        target = quarry.tz - 1
+    else
+        target = 0
+    end
+
+    for z = quarry.z, target, quarry.dz do
         digOrScoop(-1)
         digOrScoop(1)
-        local nextZ = z + quarry.dz
-        if nextZ == 0 or nextZ == quarry.tz then
-            return true
-        end
+        if z == target then return true end
         digOrScoop(0)
         if not quarry:forth() then
             return false
@@ -107,21 +111,20 @@ local function digLine()
 end
 
 local function digLayer(dx)
-    local right = dx == -1
+    local right = dx == 1
+    local target
+    if dx == 1 then
+        target = quarry.tx - 1
+    else
+        target = 0
+    end
 
-    for x = quarry.x, quarry.tx - 1, dx do
-        if not digLine() then
-            return false
-        end
-        local nextX = x + dx
-        if nextX == 0 or nextX == quarry.tx then
-            return true
-        end
+    for x = quarry.x, target, dx do
+        if not digLine() then return false end
+        if x == target then return true end
         if right then quarry:turnRight() else quarry:turnLeft() end
         digOrScoop(0)
-        if not quarry:forth() then
-            return false
-        end
+        if not quarry:forth() then return false end
         if right then quarry:turnRight() else quarry:turnLeft() end
         right = not right
     end
@@ -147,9 +150,9 @@ end
 
 while digLayer(dx) do
     dx = -dx
-    for _ = 1, 2 do
-        digOrScoop(-1)
+    for _ = 1, 3 do
         quarry:down()
+        digOrScoop(-1)
     end
 end
 
