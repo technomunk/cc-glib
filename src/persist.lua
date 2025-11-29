@@ -10,9 +10,9 @@ local function persist(o)
     local name = shell.getRunningProgram()
 
     file = fs.open("startup", "w+")
-    file.write("shell.execute(")
+    file.write('shell.execute("')
     file.write(name)
-    file.write('"--restore")')
+    file.write('", "--restore")')
     file.close()
 
     setmetatable(o, mt)
