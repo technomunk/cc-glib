@@ -7,12 +7,19 @@
 --- @field y number
 --- @field z number
 
+--- @class Loc
+--- @field x number
+--- @field y number
+--- @field z number
+--- @field dx -1|0|1
+--- @field dz -1|0|1
+
 --- @class Navigator dead-reckoning based navigation
 --- @field public x number the relative x offset from the beginning of navigation
 --- @field public y number the relative y offset from the beginning of navigation
 --- @field public z number the relative z offset from the beginning of navigation
---- @field protected dx number how the x changes when moving forward
---- @field protected dy number how the y changes when moving forward
+--- @field public dx -1|0|1 how the x changes when moving forward
+--- @field public dz -1|0|1 how the y changes when moving forward
 --- @field public onUpdate fun(self: Navigator) is called on every update (movement or turning)
 local Nav = {
     x = 0,
@@ -177,12 +184,13 @@ end
 --- @param z number the resulting z offset
 --- @return boolean success
 --- @overload fun(self: Navigator, point: Point3): boolean
+--- @overload fun(self: Navigator, location: Loc): boolean
 function Nav:goTo(x, y, z)
+    local dx, dz
     if type(x) == "table" then
-        z = x.z
-        y = x.y
-        x = x.x
+        x, y, z, dx, dz = x.x, x.y, x.z, x.dx, x.dz
     end
+
     assert(x and y and z, "invalid coordinate")
     if self.y ~= y and not self:goUp(y - self.y) then
         return false
@@ -209,7 +217,23 @@ function Nav:goTo(x, y, z)
             return false
         end
     end
+
+    if dx and dz then
+        self:turnTo(dx, dz)
+    end
     return true
+end
+
+--- Get the current checkpoint
+--- @return Loc
+function Nav:checkpoint()
+    return {
+        x = self.x,
+        y = self.y,
+        z = self.z,
+        dx = self.dx,
+        dz = self.dz
+    }
 end
 
 local NavMeta = {

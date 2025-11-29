@@ -35,6 +35,23 @@ local function confirm(message, default)
     return answer
 end
 
+--- Prompt the user for some input
+--- @generic T
+--- @param message string
+---@param transform fun(input: string):T
+local function prompt(message, transform)
+    write(message)
+    local result = nil
+    while result == nil do
+        result = transform(read())
+        if result == nil then
+            write("Invalid input, try again:")
+        end
+    end
+    return result
+end
+
 return {
-    confirm = confirm
+    confirm = confirm,
+    prompt = prompt,
 }
