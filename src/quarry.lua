@@ -95,7 +95,7 @@ local function digLine()
         digOrScoop(-1)
         digOrScoop(1)
         local nextZ = z + quarry.dz
-        if nextZ == 0 or nextZ == quarry.tz - 1 then
+        if nextZ == 0 or nextZ == quarry.tz then
             return true
         end
         digOrScoop(0)
@@ -114,12 +114,12 @@ local function digLayer(dx)
         turn = quarry.turnLeft
     end
 
-    for x = quarry.x, quarry.tx, dx do
+    for x = quarry.x, quarry.tx - 1, dx do
         if not digLine() then
             return false
         end
         local nextX = x + dx
-        if nextX == 0 or nextX == quarry.tx - 1 then
+        if nextX == 0 or nextX == quarry.tx then
             return true
         end
         turn(quarry)
