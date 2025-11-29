@@ -6,7 +6,7 @@ local persist = require("persist")
 local function setup(args)
     local result = {}
 
-    result.tx = tonumber(args[1])
+    result.tx = assert(tonumber(args[1]), "need width")
     result.tz = tonumber(args[2]) or result.tx
 
     result.bucketSlot = inv.find("minecraft:bucket")

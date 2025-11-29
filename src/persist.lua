@@ -1,7 +1,7 @@
 --- Persist the given object
 local function persist(o)
     local mt = getmetatable(o)
-    setmetatable(o)
+    setmetatable(o, nil)
 
     local file = fs.open(".persisted", "w+")
     file.write(textutils.serialise(o, { compact = true }))
