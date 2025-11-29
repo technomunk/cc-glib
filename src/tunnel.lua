@@ -58,10 +58,11 @@ local function digOrScoop(dir)
                 place()
                 turtle.refuel()
             end
-        elseif cooldown <= 0 and string.find(info.name, "ore") then
-            chat.inform("Hit "..info.name)
-            cooldown = 10
         else
+            if cooldown <= 0 and string.find(info.name, "ore") then
+                chat.inform("Hit "..info.name)
+                cooldown = 10
+            end
             dig()
             cooldown = cooldown - 1
             if block.isAffectedByGravity(info) then
