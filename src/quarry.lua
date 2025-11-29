@@ -44,6 +44,7 @@ local function dumpItemsAtBase()
     assert(quarry:goTo(cpv))
     assert(quarry:goTo(0, 0, 0))
     dumpInventory()
+    assert(quarry:goTo(cpv))
     assert(quarry:goTo(cp))
 end
 
