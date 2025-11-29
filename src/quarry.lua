@@ -152,6 +152,9 @@ while digLayer() do
     end
 end
 
+persist.cleanup()
+getmetatable(quarry).__index.onUpdate = function(o)end
+
 quarry:goTo(0, 0, 0)
 dumpInventory()
 print("Done!")

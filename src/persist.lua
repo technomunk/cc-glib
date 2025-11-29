@@ -38,7 +38,13 @@ local function wrap(args, setup)
     return result
 end
 
+local function cleanup()
+    fs.remove(".persisted")
+    fs.remove("startup")
+end
+
 return {
     wrap = wrap,
     persist = persist,
+    cleanup = cleanup,
 }
