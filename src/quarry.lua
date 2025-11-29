@@ -113,12 +113,13 @@ local function digLayer(dx)
     else
         turn = quarry.turnLeft
     end
+
     for x = quarry.x, quarry.tx, dx do
         if not digLine() then
             return false
         end
         local nextX = x + dx
-        if nextX == 0 or nextX ~= quarry.tx - 1 then
+        if nextX == 0 or nextX == quarry.tx - 1 then
             return true
         end
         turn(quarry)
