@@ -51,9 +51,11 @@ local function digOrScoop(dir)
     detected, info = inspect()
     if detected then
         if info.name == "minecraft:lava" then
-            turtle.select(bucketSlot)
-            place()
-            turtle.refuel()
+            if bucketSlot then
+                turtle.select(bucketSlot)
+                place()
+                turtle.refuel()
+            end
         else
             dig()
             if block.isAffectedByGravity(info) then
@@ -68,7 +70,13 @@ end
 
 local function ensureInventorySpace()
     if turtle.getItemSpace(16) ~= 64 then
-        returnToDump()
+        if chestPresent then
+            returnToDump()
+        else
+            chat.inform("Inventory full, returning home")
+            nav:goTo(0, 0, 0)
+            error("No chest to dump into")
+        end
     end
 end
 
@@ -86,13 +94,13 @@ local s = 0
 while true do
     step()
     s = s + 1
-    if s % 10 == 0 then
+    if s % 10 == 0 and torchSlot then
         turtle.select(torchSlot)
         if turtle.placeDown() then
             torchCount = torchCount - 1
-        end
-        if torchCount == 0 then
-            break
+            if torchCount == 0 then
+                break
+            end
         end
     end
     if s % 100 == 0 then
