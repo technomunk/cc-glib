@@ -131,10 +131,23 @@ local function digLayer(dx)
     return true
 end
 
-turtle.digDown()
-quarry:down()
-
 local dx = 1
+if quarry:isAt(0, 0, 0) then
+    turtle.digDown()
+    quarry:down()
+else
+    if quarry.dz == 0 then
+        dx = quarry.dx
+        digOrScoop(0)
+        assert(quarry:forth())
+        if dx == 1 then
+            quarry:turnRight()
+        else
+            quarry:turnLeft()
+        end
+    end
+end
+
 while digLayer(dx) do
     dx = -dx
     for _ = 1, 2 do
