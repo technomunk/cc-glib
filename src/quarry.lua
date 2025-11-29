@@ -110,45 +110,41 @@ local function digLine()
     return true
 end
 
-local function digLayer(dx)
-    local right = dx == 1
-    local target
-    if dx == 1 then
+local function digLayer()
+    local dx, dz, target
+    if quarry.x == 0 then
+        dx = 1
         target = quarry.tx - 1
     else
+        dx = -1
         target = 0
     end
 
     for x = quarry.x, target, dx do
         if not digLine() then return false end
         if x == target then return true end
-        if right then quarry:turnRight() else quarry:turnLeft() end
+        quarry:turnTo(dx, 0)
         digOrScoop(0)
         if not quarry:forth() then return false end
-        if right then quarry:turnRight() else quarry:turnLeft() end
+        if quarry.z == 0 then
+            dz = 1
+        else
+            dz = -1
+        end
+        quarry:turnTo(0, dz)
         right = not right
     end
     return true
 end
 
-local dx = 1
 if quarry:isAt(0, 0, 0) then
     turtle.digDown()
     quarry:down()
-else
-    if quarry.dz == 0 then
-        dx = quarry.dx
-        digOrScoop(0)
-        assert(quarry:forth())
-        if dx == 1 then
-            quarry:turnRight()
-        else
-            quarry:turnLeft()
-        end
-    end
+elseif quarry.dx ~= 0 then
+    assert(quarry:goTo({ x = 0, y = quarry.y + 3, z = 0 }))
 end
 
-while digLayer(dx) do
+while digLayer() do
     dx = -dx
     for _ = 1, 3 do
         quarry:down()
