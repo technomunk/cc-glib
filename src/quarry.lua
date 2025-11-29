@@ -24,7 +24,9 @@ end
 local quarry = persist.wrap({ ... }, setup)
 
 quarry = nav.new(quarry)
-quarry.onUpdate = quarry.persist
+local meta = getmetatable(quarry)
+meta.onUpdate = persist.persist
+setmetatable(quarry, meta)
 
 local function dumpInventory()
     for slot = 1, 16 do

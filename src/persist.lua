@@ -35,10 +35,10 @@ local function wrap(args, setup)
     else
         result = setup(args)
     end
-    result.persist = persist
     return result
 end
 
 return {
-    wrap = wrap
+    wrap = wrap,
+    persist = persist,
 }
