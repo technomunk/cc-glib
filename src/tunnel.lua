@@ -1,5 +1,6 @@
 local nav = require("nav")
 local inv = require("inventory")
+local block = require("block")
 
 local bucketSlot = assert(inv.find("minecraft:bucket"), "missing a bucket to refuel with")
 local detected, info = turtle.inspectDown()
@@ -62,9 +63,8 @@ local function digOrScoop(dir)
             turtle.refuel()
         else
             dig()
-            if info.name == "minecraft:gravel" or info.name == "minecraft:sand" then
+            if block.isAffectedByGravity(info) then
                 repeat
-                    sleep(0.2)
                     dig()
                 until not inspect()
             end
