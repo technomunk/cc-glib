@@ -66,8 +66,8 @@ local function digOrScoop(dir)
             cooldown = cooldown - 1
             if block.isAffectedByGravity(info) then
                 repeat
-                    dig()
                     sleep(0.1)
+                    dig()
                 until not inspect()
             end
         end
@@ -89,7 +89,11 @@ end
 local function step()
     digOrScoop(0)
     ensureInventorySpace()
-    chat.errorIfNot(nav:forth(), "bumped into something")
+    if not nav:forth() then
+        chat.inform("Bumped into something, returning home")
+        nav:goTo(0, 0, 0)
+        error("Couldn't continue")
+    end
     digOrScoop(-1)
     ensureInventorySpace()
     digOrScoop(1)
