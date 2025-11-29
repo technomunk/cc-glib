@@ -99,8 +99,8 @@ local function digLine()
     end
 
     for z = quarry.z, target, quarry.dz do
-        digOrScoop(-1)
         digOrScoop(1)
+        digOrScoop(-1)
         if z == target then return true end
         digOrScoop(0)
         if not quarry:forth() then

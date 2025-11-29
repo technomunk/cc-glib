@@ -192,7 +192,7 @@ function Nav:goTo(x, y, z)
     end
 
     assert(x and y and z, "invalid coordinate")
-    if self.y ~= y and not self:goUp(y - self.y) then
+    if self.y ~= y and not self:up(y - self.y) then
         return false
     end
 
