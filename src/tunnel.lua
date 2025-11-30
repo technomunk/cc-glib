@@ -93,12 +93,14 @@ end
 local function attemptTorch()
     if config.torchSlot == nil then return true end
     if turtle.getItemCount(config.torchSlot) > 1 then
+        turtle.select(config.torchSlot)
         turtle.placeDown()
         return true
     end
     return false
 end
 
+persist.writeStartup()
 ensureInventorySpace()
 local steps = state.curPos
 while true do
