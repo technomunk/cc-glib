@@ -27,10 +27,12 @@ local expectedFiles = 0
 
 for _, file in ipairs(files) do
 	assert(file["type"], "unsupported file type: "..file["type"])
-	http.request(file["download_url"])
-	local filename = string.sub(file["path"], 5)
-	filenames[file["download_url"]] = dir..filename
-	expectedFiles = expectedFiles + 1
+	if file["type"] == "file" then
+		http.request(file["download_url"])
+		local filename = string.sub(file["path"], 5)
+		filenames[file["download_url"]] = dir..filename
+		expectedFiles = expectedFiles + 1
+	end
 end
 
 local downloaded, failed = 0, 0
