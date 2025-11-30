@@ -1,6 +1,6 @@
 --- @alias YDirection -1|0|1
 
-local inv = require("inventory")
+local inv = require("lib.inventory")
 
 local bucketSlot = inv.find("minecraft:bucket")
 

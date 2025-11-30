@@ -1,7 +1,7 @@
-local nav = require("nav")
-local prompt = require("prompt")
-local inv = require("inventory")
-local persist = require("persist")
+local nav = require("lib.nav")
+local prompt = require("lib.prompt")
+local inv = require("lib.inventory")
+local persist = require("lib.persist")
 
 local function setup(args)
     local result = {}

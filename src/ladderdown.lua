@@ -1,4 +1,4 @@
-local inv = require("inventory")
+local inv = require("lib.inventory")
 local completion = require("cc.completion")
 
 local y = 0
