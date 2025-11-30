@@ -18,34 +18,49 @@ if dir:sub(#dir) ~= "/" then
 	dir = dir.."/"
 end
 
-local response = http.get("https://api.github.com/repos/technomunk/cc-glib/contents/src")
-assert(response.getResponseCode() == 200, "failed to get repository contents")
-
-local files = textutils.unserializeJSON(response.readAll())
-local filenames = {}
+local requests = {}
 local expectedFiles = 0
 
-for _, file in ipairs(files) do
-	assert(file["type"], "unsupported file type: "..file["type"])
-	if file["type"] == "file" then
-		http.request(file["download_url"])
-		local filename = string.sub(file["path"], 5)
-		filenames[file["download_url"]] = dir..filename
-		expectedFiles = expectedFiles + 1
+local function requestAllFilesInDir(resp)
+	local files = textutils.unserializeJSON(resp.readAll())
+	for _, file in ipairs(files) do
+		if file["type"] == "file" then
+			local filename = string.sub(file["path"], 5)
+			requests[file["download_url"]] = dir..filename
+			expectedFiles = expectedFiles + 1
+			http.request(file["download_url"])
+		elseif file["type"] == "dir" then
+			local filename = string.sub(file["path"], 5)
+			fs.makeDir(dir..filename)
+			url = "https://api.github.com/repos/technomunk/cc-glib/contents/"..file["path"]
+			requests[url] = true
+			http.request(url)
+		else
+			printError("Unknown file type:", file[type])
+		end
 	end
 end
 
-local downloaded, failed = 0, 0
-fs.makeDir(dir.."lib")
+local resp = http.get("https://api.github.com/repos/technomunk/cc-glib/contents/src")
+assert(resp.getResponseCode() == 200, "failed to get repository contents")
 
-while (downloaded + failed) < expectedFiles do
-	local event, url, response = os.pullEvent()
+requestAllFilesInDir(resp)
+
+local downloaded, failed = 0, 0
+
+while (downloaded + failed) < (#requests) do
+	local event, url, resp = os.pullEvent()
 
 	if event == "http_success" then
-		saveFile(filenames[url], response.readAll())
-		downloaded = downloaded + 1
+		if type(requests[url]) == "boolean" then
+			requestAllFilesInDir(resp)
+			downloaded = downloaded + 1
+		elseif requests[url] then
+			saveFile(requests[url], resp.readAll())
+			downloaded = downloaded + 1
+		end
 	elseif event == "http_failure" then
-		print("couldn't download "..filenames[url]..": "..response)
+		print("couldn't download "..requests[url]..": "..resp)
 		failed = failed + 1
 	end
 end
