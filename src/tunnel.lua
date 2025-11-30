@@ -1,124 +1,115 @@
-local nav = require("nav")
-local inv = require("inventory")
-local block = require("block")
-local prompt = require("prompt")
-local chat = require("chat")
+local inv = require("lib.inventory")
+local prompt = require("lib.prompt")
+local persist = require("lib.persist")
+local dig = require("lib.dig")
 
 local bucketSlot = inv.find("minecraft:bucket")
-local torchSlot = inv.find("minecraft:torch")
-local detected, info = turtle.inspectDown()
 
-local chestPresent = detected and info.name == "minecraft:chest"
+--- @class Config
+--- @field torchSlot number|nil
+--- @field chestPresent boolean
+--- @return Config
+local function setup()
+    local detected, info = turtle.inspectDown()
 
-chat.errorIfNot(chestPresent or prompt.confirm("Continue without chest?"))
-chat.errorIfNot(bucketSlot or prompt.confirm("Continue without a bucket?"))
-chat.errorIfNot(torchSlot or prompt.confirm("Continue without torches?"))
+    local result = {
+        chestPresent = detected and info.name == "minecraft:chest",
+        torchSlot = inv.find("minecraft:torch")
+    }
 
-local torchCount = 0
-if torchSlot then
-    torchCount = turtle.getItemCount(torchSlot)
+    assert(result.chestPresent or prompt.confirm("Continue without chest?"))
+    assert(bucketSlot or prompt.confirm("Continue without a bucket?"))
+    assert(result.torchSlot or prompt.confirm("Continue without torches?"))
+
+    return result
 end
 
-nav = nav.new()
+
+---@type Config
+local config = persist.wrap({...}, setup, "config")
+local state = persist.wrap({ ... }, { workPos = 0, curPos = 0 }, "state")
+
+local function forth()
+    if turtle.forward() then
+        state.curPos = state.curPos + 1
+        state.workPos = math.max(state.workPos, state.curPos)
+        persist.persist(state, "state")
+        return true
+    end
+    return false
+end
+
+local function back()
+    if turtle.back() then
+        state.curPos = state.curPos - 1
+        persist.persist(state, "state")
+        return true
+    end
+    return false
+end
+
+local function goHome()
+    for z = state.curPos, 0, -1 do
+        assert(back())
+    end
+end
+
+local function goToWork()
+    for z = state.curPos, state.workPos do
+        assert(forth())
+    end
+end
 
 local function dumpItems()
     for slot = 1, 16 do
-        if slot ~= bucketSlot and turtle.getItemCount(slot) ~= 0 then
+        if slot ~= config.bucketSlot and slot ~= config.torchSlot and turtle.getItemCount(slot) ~= 0 then
             turtle.select(slot)
-            chat.errorIfNot(turtle.dropDown(), "chest is full!")
-        end
-    end
-end
-
-local function returnToDump()
-    local x, y, z = nav.x, nav.y, nav.z
-    chat.errorIfNot(nav:goTo(0, 0, 0), "failed to return home!")
-    dumpItems()
-    chat.errorIfNot(nav:goTo(x, y, z), "failed to return to the tunnel")
-end
-
-local cooldown = 0
-
---- @param dir -1|0|1 the direction to dig or scoop in
-local function digOrScoop(dir)
-    local inspect, dig, place
-    if dir == -1 then
-        inspect, dig, place = turtle.inspectDown, turtle.digDown, turtle.placeDown
-    elseif dir == 0 then
-        inspect, dig, place = turtle.inspect, turtle.dig, turtle.place
-    else
-        inspect, dig, place = turtle.inspectUp, turtle.digUp, turtle.placeUp
-    end
-
-    detected, info = inspect()
-    if detected then
-        if info.name == "minecraft:lava" then
-            if bucketSlot then
-                turtle.select(bucketSlot)
-                place()
-                turtle.refuel()
-            end
-        else
-            if cooldown <= 0 and string.find(info.name, "ore") then
-                chat.inform("Hit "..info.name)
-                cooldown = 10
-            end
-            dig()
-            cooldown = cooldown - 1
-            if block.isAffectedByGravity(info) then
-                repeat
-                    sleep(0.1)
-                    dig()
-                until not inspect()
-            end
+            assert(turtle.dropDown(), "chest is full!")
         end
     end
 end
 
 local function ensureInventorySpace()
-    if turtle.getItemSpace(16) ~= 64 then
-        if chestPresent then
-            returnToDump()
-        else
-            chat.inform("Inventory full, returning home")
-            nav:goTo(0, 0, 0)
-            error("No chest to dump into")
-        end
+    if turtle.getItemCount(16) ~= 0 then
+        goHome()
+        dumpItems()
+        goToWork()
     end
 end
 
 local function step()
-    digOrScoop(0)
+    dig.digOrScoop(0)
     ensureInventorySpace()
-    if not nav:forth() then
-        chat.inform("Bumped into something, returning home")
-        nav:goTo(0, 0, 0)
+    if not forth() then
+        goHome()
         error("Couldn't continue")
     end
-    digOrScoop(-1)
+    dig.digOrScoop(1)
     ensureInventorySpace()
-    digOrScoop(1)
+    dig.digOrScoop(-1)
     ensureInventorySpace()
 end
 
-local s = 0
+local function attemptTorch()
+    if config.torchSlot == nil then return true end
+    if turtle.getItemCount(config.torchSlot) > 1 then
+        turtle.placeDown()
+        return true
+    end
+    return false
+end
+
+ensureInventorySpace()
+local steps = state.curPos
 while true do
+    if steps % 10 == 9 then
+       if not attemptTorch() then break end
+    end
     step()
-    s = s + 1
-    if s % 10 == 0 and torchSlot then
-        turtle.select(torchSlot)
-        if turtle.placeDown() then
-            torchCount = torchCount - 1
-            if torchCount == 0 then
-                break
-            end
-        end
-    end
-    if s % 100 == 0 then
-        chat.inform("Dug "..s.." blocks!")
-    end
+    steps = steps + 1
 end
 
-chat.errorIfNot(nav:goTo(0, 0, 0), "Couldn't return home")
+goHome()
 dumpItems()
-chat.inform("Done digging!")
+persist.cleanup()
+print("Done!")

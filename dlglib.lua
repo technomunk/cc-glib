@@ -33,6 +33,7 @@ for _, file in ipairs(files) do
 end
 
 local downloaded, failed = 0, 0
+fs.makeDir(dir.."lib")
 
 while (downloaded + failed) < expectedFiles do
 	local event, url, response = os.pullEvent()

@@ -1,4 +1,4 @@
---- @class Direction
+--- @class Heading
 --- @field dx 1|0|-1
 --- @field dy 1|0|-1
 
@@ -150,7 +150,7 @@ end
 --- @param dx 1|0|-1 the resulting change in x direction after the turn
 --- @param dz 1|0|-1 the resulting change in y direction after the turn
 --- @return boolean success
---- @overload fun(self: Navigator, dir: Direction): boolean
+--- @overload fun(self: Navigator, dir: Heading): boolean
 function Nav:turnTo(dx, dz)
     if type(dx) == "table" then
         dz = dx.dz
