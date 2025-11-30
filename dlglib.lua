@@ -28,7 +28,8 @@ local expectedFiles = 0
 for _, file in ipairs(files) do
 	assert(file["type"], "unsupported file type: "..file["type"])
 	http.request(file["download_url"])
-	filenames[file["download_url"]] = dir..file["name"]
+	local filename = string.sub(file["path"], 5)
+	filenames[file["download_url"]] = dir..filename
 	expectedFiles = expectedFiles + 1
 end
 
