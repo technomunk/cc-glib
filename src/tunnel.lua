@@ -49,7 +49,7 @@ local function back()
 end
 
 local function goHome()
-    for z = state.curPos, 0, -1 do
+    for z = state.curPos, 1, -1 do
         assert(back())
     end
 end
