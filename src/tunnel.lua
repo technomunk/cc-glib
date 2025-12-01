@@ -55,14 +55,14 @@ local function goHome()
 end
 
 local function goToWork()
-    for z = state.curPos, state.workPos do
+    for z = state.curPos, state.workPos - 1 do
         assert(forth())
     end
 end
 
 local function dumpItems()
     for slot = 1, 16 do
-        if slot ~= config.bucketSlot and slot ~= config.torchSlot and turtle.getItemCount(slot) ~= 0 then
+        if slot ~= bucketSlot and slot ~= config.torchSlot and turtle.getItemCount(slot) ~= 0 then
             turtle.select(slot)
             assert(turtle.dropDown(), "chest is full!")
         end
